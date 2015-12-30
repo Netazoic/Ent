@@ -31,4 +31,6 @@ public interface IF_Ent<T> {
 	public abstract void updateRecord(Map<String,Object> paramMap)
 			throws ENTException;
 
+	void initNIT() throws ENTException;
+
 }

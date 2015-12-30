@@ -102,60 +102,12 @@ public class ServENT extends HttpServlet {
 
 	}
 
-	public void service(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException{
-		request.setCharacterEncoding("utf-8");
-		Enumeration<String> params = request.getParameterNames();
-		doParamParsing(request, params);
-		HttpSession session = request.getSession();
-		NetRoute route = getRoute(request);
-		if (route!=null)
-			try {
-				route.doRoute(request, response, session);
-			} catch (Exception e) {
-				throw new ServletException(e);
-			}
-		else {
-			// no handler for the requested route
-			throw new ServletException("Invalid Request!");
-		}
-	}
-
 	public void ajaxResponse(String json, HttpServletResponse response)
 			throws IOException {
 		response.setContentType("text/xml");
 		response.setHeader("Cache-Control", "no-cache");
 		response.getWriter().write(json);
 	}
-
-	public NetRoute getRoute(HttpServletRequest request) {
-		String routeString = getRoutePrimary(request);
-
-
-
-		NetRoute route = (NetRoute)routeMap.get(routeString);
-		if(route==null) route = (NetRoute)routeMap.get(defaultRoute);
-		return route;
-	}
-
-	public String getRoutePrimary(HttpServletRequest request) {
-		String url = request.getRequestURI();
-		//TODO make smarter to handle multi-segmented routes like route/sub-route
-
-		//Action is the last part of the uri, after the last "/" and before any query
-		// string or # locator
-		Integer idxQ=0,idxP=0,idxE;
-		if(url.matches("\\?")) idxQ = url.indexOf('?');
-		if(url.matches("#")) idxP = url.indexOf('#');
-		idxE = idxQ>0?idxQ:idxP>0?idxP:url.length();
-		String routeString = url.substring(url.lastIndexOf('/')+1,idxE);
-
-		if(routeString != null){
-			request.setAttribute(ENT_Param.routeString.name(), routeString);
-		}
-		return routeString;
-	}
-
 
 	public void doParamParsing(HttpServletRequest request,
 			Enumeration<String> params) {
@@ -187,6 +139,35 @@ public class ServENT extends HttpServlet {
 			}
 		}
 	}
+
+	public NetRoute getRoute(HttpServletRequest request) {
+		String routeString = getRoutePrimary(request);
+
+
+
+		NetRoute route = (NetRoute)routeMap.get(routeString);
+		if(route==null) route = (NetRoute)routeMap.get(defaultRoute);
+		return route;
+	}
+
+	public String getRoutePrimary(HttpServletRequest request) {
+		String url = request.getRequestURI();
+		//TODO make smarter to handle multi-segmented routes like route/sub-route
+
+		//Action is the last part of the uri, after the last "/" and before any query
+		// string or # locator
+		Integer idxQ=0,idxP=0,idxE;
+		if(url.matches("\\?")) idxQ = url.indexOf('?');
+		if(url.matches("#")) idxP = url.indexOf('#');
+		idxE = idxQ>0?idxQ:idxP>0?idxP:url.length();
+		String routeString = url.substring(url.lastIndexOf('/')+1,idxE);
+
+		if(routeString != null){
+			request.setAttribute(ENT_Param.routeString.name(), routeString);
+		}
+		return routeString;
+	}
+
 
 	public Connection getConnection() throws SQLException {
 		Connection con = null;
@@ -223,6 +204,25 @@ public class ServENT extends HttpServlet {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode obj = mapper.readTree(sb.toString());
 		return obj;
+	}
+
+	public void service(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException{
+		request.setCharacterEncoding("utf-8");
+		Enumeration<String> params = request.getParameterNames();
+		doParamParsing(request, params);
+		HttpSession session = request.getSession();
+		NetRoute route = getRoute(request);
+		if (route!=null)
+			try {
+				route.doRoute(request, response, session);
+			} catch (Exception e) {
+				throw new ServletException(e);
+			}
+		else {
+			// no handler for the requested route
+			throw new ServletException("Invalid Request!");
+		}
 	}
 
 	public abstract class RouteEO implements NetRoute {

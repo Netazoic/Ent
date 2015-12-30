@@ -30,22 +30,10 @@ import com.netazoic.util.SQLUtil;
 
 public abstract class ENT<T> implements IF_Ent<T>{
 
-	public Field fld_nitID;
+	@JsonIgnore
+	protected NIT nit = new NIT();
 
-	public String sql_RetrieveENT;
-	public String sql_CreateEVT;
 
-	public String nitName = null;
-	public Long nitID = null;
-	public String nitIDField = null;
-	public String nitCode = null;
-	public String nitTitle = null;
-	public String nitDesc = null;
-	public String nitURL = null;
-	public String nitTypeCode = null;
-
-	public String nitTable = null;
-	
 
 
 	@JsonIgnore
@@ -54,10 +42,11 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	@JsonIgnore 
 	public Connection con;
 
-	public void init(){
+	public void init() throws ENTException{
 		initENT();
+		initNIT();
 	}
-	public void init(Connection con){
+	public void init(Connection con) throws ENTException{
 		this.con = con;
 		init();
 	}
@@ -68,6 +57,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		setIDFieldVal(id);
 		retrieveRecord();
 	}
+
 	public void init(Long id,Connection con) throws ENTException{
 		this.con = con;
 		init();
@@ -75,16 +65,26 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		retrieveRecord();
 	}
 
+
+	@Override
+	public void initNIT() throws ENTException {
+		try{
+			nit.initNIT(this.getClass());
+
+		}catch(Exception ex){
+			throw new ENTException(ex);
+		}
+	}
 	public abstract void initENT();
 
 	public ENT(){}
-	public ENT(Connection con){
+	public ENT(Connection con) throws ENTException{
 		init(con);
 	}
 	public ENT(Long id,Connection con) throws ENTException{
 		init(id,con);
 	}
-	
+
 
 
 	public ENT<?> clone(){
@@ -187,19 +187,18 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		String sql = null;
 		try{
 			Object nitIDObj;
-			if(fld_nitID == null) 	fld_nitID = this.getClass().getField(nitIDField);
-			nitIDObj = fld_nitID.get(this);
+			assert(nit.nitIDField!=null);
+			nitIDObj = nit.nitIDField.get(this);
 			if(nitIDObj == null) throw new Exception("Must first set record ID value.");
-			String fPath = sql_RetrieveENT;
+			String fPath = nit.sql_RetrieveENT;
 			Map<String, Object> settings = new HashMap<String, Object>();
-			settings.put(fld_nitID.getName(), nitIDObj);
+			settings.put(nit.nitIDField.getName(), nitIDObj);
 			if(fPath == null){
-				sql = "SELECT * FROM " + this.nitTable + " WHERE " + fld_nitID.getName() + " = '" + nitIDObj + "'";
+				sql = "SELECT * FROM " + nit.nitTable + " WHERE " + nit.nitIDField.getName() + " = '" + nitIDObj + "'";
 			}
 			else sql = ParseUtil.parseQuery(fPath, settings);
 			stat = con.createStatement();
 			ResultSet rs = SQLUtil.execSQL(sql,stat);
-			nitID = (Long)nitIDObj;
 			setFieldVals(rs);
 			//twiddleWebuserIterator();
 		}catch(Exception ex){
@@ -210,21 +209,20 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 	}
 
-	/* (non-Javadoc)
-	 * @see com.netazoic.ent.IF_Ent#retrieveRecord(javax.servlet.http.HttpServletRequest)
-	 */
-	public void retrieveRecord(Map<String,Object> paramMap)
-			throws ENTException{
-		String idTemp = null;
+	public void retrieveRecord(HashMap<String,Object> settings) throws ENTException {
+		Statement stat = null;
+		try{
+			String ctp = nit.sql_RetrieveENT;
+			String sql = ParseUtil.parseQuery(settings, ctp);
+			stat = con.createStatement();
+			ResultSet rs = SQLUtil.execSQL(sql,stat);
+			setFieldVals(rs);
+		}catch(Exception ex){
+			throw new ENTException(ex);
+		}finally{
+			if(stat != null) try{stat.close();stat = null;}catch(Exception ex){}
+		}	
 
-		try {
-			idTemp = (String)paramMap.get(fld_nitID.getName());
-			if(idTemp == null) throw new ENTException("Could not determine record ID");
-			setIDFieldVal(idTemp);
-			retrieveRecord();
-		} catch (SecurityException e) {
-			throw new ENTException(e);
-		}
 	}
 
 
@@ -255,6 +253,22 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			}
 		}
 	}
+
+	private void setIDFieldVal(String id) throws ENTException {
+		try{
+			nit.nitIDField.set(this, Long.parseLong(id));
+		}catch(IllegalAccessException ex){
+			throw new ENTException(ex);
+		}
+	}
+	private void setIDFieldVal(Long id) throws ENTException {
+		try{
+			nit.nitIDField.set(this, id);
+		}catch(IllegalAccessException ex){
+			throw new ENTException(ex);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#setFieldVals(java.sql.ResultSet)
 	 */
@@ -343,32 +357,6 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		return val;
 	}
 
-	public void setIDFieldVal(String id) throws ENTException{
-		try {
-			if(fld_nitID == null) fld_nitID = this.getClass().getField(nitIDField);
-			if(fld_nitID == null) throw new ENTException("Could not determine ID field");
-
-			fld_nitID.set(this, id);
-		} catch (IllegalArgumentException e) {
-			throw new ENTException(e);
-		} catch (IllegalAccessException e) {
-			throw new ENTException(e);
-		} catch (NoSuchFieldException e) {
-			throw new ENTException(e);
-		} catch (SecurityException e) {
-			throw new ENTException(e);
-		}
-
-	}
-	private void setIDFieldVal(Long id) throws ENTException{
-		try{
-			if(fld_nitID == null) fld_nitID = this.getClass().getField(nitIDField);
-			if(fld_nitID == null) throw new ENTException("Could not determine ID field");
-			fld_nitID.set(this, id);
-		}catch(Exception ex){
-			throw new ENTException(ex);
-		}
-	}
 
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#updateRecord(javax.servlet.http.HttpServletRequest)
@@ -389,7 +377,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		//Only update the fields that are actually present in the form input
 		//Works with multi-page forms
 		try{
-			assert(nitTable != null && nitIDField != null && nitID != null);
+			assert(nit.nitTable != null && nit.nitIDField != null && nit.nitID != null);
 		}catch(Exception ex){
 			throw new ENTException("nit variables not set for this object.  Cannot update record.");
 		}
@@ -397,7 +385,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		Map<String,Field> fldMap = new HashMap<String, Field>();
 		List<Field> flds= getFields(new LinkedList<Field>(),this.getClass(),flgInherit, flgPublic);
 		for(Field f : flds){
-			if(f.getName().equals(nitIDField)) continue;
+			if(f.getName().equals(nit.nitIDField.getName())) continue;
 			fldMap.put(f.getName(), f);
 		}
 
@@ -409,7 +397,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		Timestamp ts = new Timestamp(12345);
 
 		String q;
-		q = "UPDATE " + nitTable + " SET \n";
+		q = "UPDATE " + nit.nitTable + " SET \n";
 		while(params.iterator().hasNext()){
 			fld = (String)params.iterator().next().getKey();
 			if(!fldMap.containsKey(fld))continue;
@@ -436,7 +424,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			return;
 		}
 		q = q.substring(0,q.lastIndexOf(",")) + "\n";
-		q += " WHERE " + this.nitIDField +"='" + nitID + "'";
+		q += " WHERE " + nit.nitIDField.getName() +"='" + nit.nitID + "'";
 
 		SQLUtil.execSQL(q,con);
 
