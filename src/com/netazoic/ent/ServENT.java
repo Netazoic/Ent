@@ -25,6 +25,7 @@ import javax.sql.DataSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netazoic.util.ParseUtil;
 
 /*
  * References:
@@ -39,8 +40,10 @@ public class ServENT extends HttpServlet {
 	public  DataSource dataSource = null;
 	public String driverManagerURL, driverManagerUser, driverManagerPwd;
 
+	public ParseUtil parser = new ParseUtil();
+
 	public enum ENT_Param{
-		netRoute, routeString, Settings, jndiDB, sqliteDB, dbUser, dbPwd;}
+		netRoute, routeString, Settings, jndiDB, sqliteDB, dbUser, dbPwd, TemplatePath;}
 
 
 	public void init(ServletConfig config) throws javax.servlet.ServletException {
@@ -99,6 +102,12 @@ public class ServENT extends HttpServlet {
 			}
 
 		}
+		
+		parser.templatePath = config.getServletContext().getInitParameter(ENT_Param.TemplatePath.name());
+		if(parser.templatePath == null){
+			throw new javax.servlet.ServletException("TemplatePath param not set.");
+		}
+		parser.appRootPath = config.getServletContext().getRealPath("/");
 
 	}
 

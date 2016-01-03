@@ -17,7 +17,9 @@ import org.apache.commons.io.FileUtils;
 
 public class ParseUtil {
 	public ParseUtil(){}
-	public String templatePath;
+	public static String templatePath;
+	public static String appRootPath;
+
 
 	
 	public static String parseFile( String path,Map<String,Object> settings) throws Exception{
