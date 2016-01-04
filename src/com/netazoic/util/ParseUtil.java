@@ -2,15 +2,12 @@ package com.netazoic.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
@@ -21,22 +18,60 @@ public class ParseUtil {
 	public static String appRootPath;
 
 
-	
+	private static String getFilePath(String path) throws Exception{
+		String[] tPaths = null;
+		String tempPath = null;
+		File f;
+		boolean flgFoundIt = false;
+		if(templatePath.contains(";")){
+			tPaths = templatePath.split(";");
+		}else{
+			tPaths = new String[1];
+			tPaths[0] = templatePath;
+		}
+		//Check for a file in the templates directories.  These may be either fully specified: c:\blh\foo\hmm
+		// or relative paths:  /www/WEB-INF/templates
+		try{
+			if(appRootPath!=null){
+				for(String tp : tPaths){
+					tempPath = appRootPath + tp +  File.separator + path;
+					f = new File(tempPath);
+					if(f.exists()){
+						flgFoundIt=true;
+						break;
+					}
+				}
+			}
+			if(!flgFoundIt){ //Try without the appRootPath -- fully specified paths in the init config
+				for(String tp : tPaths){
+					tempPath =  tp +  File.separator + path;
+					f = new File(tempPath);
+					if(f.exists()){
+						flgFoundIt=true;
+						break;
+					}
+				}
+			}
+		}catch(Exception ex){
+
+		}finally{
+			f = null;
+		}
+		if(!flgFoundIt) throw new Exception ("Could not find a template matching filename: " + path);
+		return tempPath;
+	}
 	public static String parseFile( String path,Map<String,Object> settings) throws Exception{
-		File rootPath = new File(".");
-		//FIXME magic string
-		path = rootPath.getCanonicalPath() + "/src/main/webapp/templates" +  File.separator + path;
+		path = appRootPath + templatePath +  File.separator + path;
 		String q = readFile(path);
 		return parseQuery(settings, q);
 	}
-	
+
 	public static void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
 		String tmp = null;
 		Object valObj;
 		try {
-			File rootPath = new File(".");
-			//FIXME magic string
-			tPath = rootPath.getCanonicalPath() + "/src/main/webapp/templates" +  File.separator + tPath;
+
+			tPath = getFilePath(tPath);
 
 			byte[] encoded = Files.readAllBytes(Paths.get(tPath));
 			tmp =  StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
@@ -56,7 +91,7 @@ public class ParseUtil {
 	public String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
 		File rootPath = new File(".");
 		//FIXME magic string
-		path = rootPath.getCanonicalPath() + "/src/main/webapp/templates" +  File.separator + path;
+		path = rootPath.getCanonicalPath() + templatePath +  File.separator + path;
 		String q = readFile(path);
 		return parseQuery(settings, q);
 	}
@@ -64,7 +99,7 @@ public class ParseUtil {
 	public static String parseQuery( String path,Map<String,Object> settings) throws Exception{
 		File rootPath = new File(".");
 		//FIXME magic string
-		path = rootPath.getCanonicalPath() + "/src/main/webapp/templates" +  File.separator + path;
+		path = rootPath.getCanonicalPath() + templatePath +  File.separator + path;
 		String q = readFile(path);
 		return parseQuery(settings, q);
 	}
