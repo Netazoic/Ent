@@ -113,7 +113,7 @@ public class ServENT extends HttpServlet {
 
 	public void ajaxResponse(String json, HttpServletResponse response)
 			throws IOException {
-		response.setContentType("text/xml");
+		response.setContentType("application/json");
 		response.setHeader("Cache-Control", "no-cache");
 		response.getWriter().write(json);
 	}
