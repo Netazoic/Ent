@@ -31,7 +31,7 @@ import com.netazoic.util.SQLUtil;
 public abstract class ENT<T> implements IF_Ent<T>{
 
 	@JsonIgnore
-	protected NIT nit = new NIT();
+	public NIT nit = new NIT();
 
 
 
@@ -44,7 +44,6 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 	public void init() throws ENTException{
 		initENT();
-		initNIT();
 	}
 	public void init(Connection con) throws ENTException{
 		this.con = con;
@@ -66,15 +65,6 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	}
 
 
-	@Override
-	public void initNIT() throws ENTException {
-		try{
-			nit.initNIT(this.getClass());
-
-		}catch(Exception ex){
-			throw new ENTException(ex);
-		}
-	}
 	public abstract void initENT();
 
 	public ENT(){}
@@ -101,7 +91,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#createRecord(javax.servlet.http.HttpServletRequest, java.sql.Connection)
 	 */
-	public abstract Long createRecord(Map<String,Object> paramMap,	Connection con) throws ENTException;
+	public abstract Long createRecord(HashMap<String,Object> paramMap,	Connection con) throws ENTException;
 
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#deleteRecord(java.lang.String, java.lang.String)
@@ -340,7 +330,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			val = val.toString();
 		}
 		else if(type.equals(Long.class) && val instanceof java.lang.Integer){
-			val = Long.valueOf((int)val);
+			val = Long.valueOf((Integer)val);
 		}
 		else if(type.equals(java.util.UUID.class) && val instanceof java.lang.String){
 			try{

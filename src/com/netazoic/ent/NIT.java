@@ -10,9 +10,11 @@ public class NIT<T> {
 	public String FLD_NIT_ID;
 
 
-	public  String entityName, nitTable, nitName,evtTable,statusTable,evtClass,nitID,fld_nitID;
+	public  String entityName, nitTable, nitName,evtTable,statusTable,evtClass,fld_nitID;
 	public  String sql_RetrieveENT, sql_CreateENT, sql_UpdateENT, sql_DeleteENT, sql_seqName, sql_ExpireENT;
 	public Field nitIDField;
+	
+	public Long nitID;
 	
 	public String sql_CreateEVT;
 	public String nitCode = null;
