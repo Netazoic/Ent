@@ -3,6 +3,7 @@ package com.netazoic.ent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -196,6 +197,12 @@ public class ServENT extends HttpServlet {
 	}
 	public String getSetting(String key){
 		return getSettings().get(key);
+	}
+
+	public void parseOutput(Map<String, Object> map, String tPath, PrintWriter writer)
+	throws Exception {
+		parser.parseOutput(map, tPath, writer);
+		
 	}
 
 	public void putSettings(Map<Object,String>settings){

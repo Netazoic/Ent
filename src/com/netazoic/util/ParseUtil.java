@@ -11,11 +11,30 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.pegdown.PegDownProcessor;
 
 public class ParseUtil {
 	public ParseUtil(){}
 	public static String templatePath;
 	public static String appRootPath;
+	
+	public enum EXTENSION{
+		MD(".md"),
+		HTM(".htm"),
+		HTML(".html"),
+		HTMLS(".htmls"),
+		JS(".js"),
+		JSX(".jsx"),
+		PDF(".pdf"),
+		JPG(".jpg"),
+		GIF(".gif"),
+		PNG(".png");
+		
+		String ext;
+		EXTENSION(String e){
+			ext = e;
+		}
+	}
 
 
 	private static String getFilePath(String path) throws Exception{
@@ -34,7 +53,12 @@ public class ParseUtil {
 		try{
 			if(appRootPath!=null){
 				for(String tp : tPaths){
-					tempPath = appRootPath + tp +  File.separator + path;
+					
+					String lastChar = tp.substring(tp.length()-1);
+					boolean endsWith = (lastChar.equals(File.separator)) || (lastChar.equals("/"));
+					tempPath = appRootPath + tp;
+					if(!endsWith) tempPath +=  File.separator;
+					tempPath += path;
 					f = new File(tempPath);
 					if(f.exists()){
 						flgFoundIt=true;
@@ -66,7 +90,7 @@ public class ParseUtil {
 		return parseQuery(settings, q);
 	}
 
-	public static void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
+	public void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
 		String tmp = null;
 		Object valObj;
 		try {
@@ -86,8 +110,15 @@ public class ParseUtil {
 		} catch (Exception ex) {
 			throw ex;
 		}
+		//Convert Markdown to html?
+		String ext = tPath.substring(tPath.lastIndexOf("."));
+		if(ext.equals(EXTENSION.MD.ext)){
+			PegDownProcessor pd = new PegDownProcessor();
+			tmp = pd.markdownToHtml(tmp);
+		}
 		pw.print(tmp);
 	}
+	
 	public String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
 		File rootPath = new File(".");
 		//FIXME magic string
