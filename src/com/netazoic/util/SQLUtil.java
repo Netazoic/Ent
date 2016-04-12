@@ -1,21 +1,13 @@
 package com.netazoic.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Properties;
-
-import org.apache.commons.io.FileUtils;
 
 
 
@@ -29,6 +21,20 @@ public class SQLUtil {
 		if(myStat!=null)try{myStat.close();myStat = null;}catch(Exception ex){}
 	}
 
+	public static Long execSQLLong(PreparedStatement ps, Connection con) throws SQLException{
+		//For prepared statements RETURNING Long, such as a CREATE query that returns record ID
+		Long id = (long) 0;
+		try{		
+			ResultSet rs = ps.executeQuery();
+			id = rs.getLong(1);
+		}
+		catch(SQLException sqlex){
+			throw new SQLException(sqlex);
+		}
+		finally{
+		}
+		return id;
+	}
 	public static int execSQL(String q, Connection con) throws SQLException{
 		Statement myStat = null;
 		int result = 0;
@@ -130,6 +136,12 @@ public class SQLUtil {
 		  String id = SQLUtil.execSQL(q, "id", con);
 		  return Long.parseLong(id);	  
 	  }
+	  /*
+	  public static Long getNextID(String seqName,Connection con){
+		  String q = "SELECT NEXTVAL as id FROM " + seqName;
+		  String id = SQLUtil.execSQL(q, "id", con);
+	  }
+	  */
 	  
 	public static void releaseConnection(Connection con) throws SQLException{
 		con.close();

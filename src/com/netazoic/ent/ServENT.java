@@ -199,9 +199,9 @@ public class ServENT extends HttpServlet {
 		return getSettings().get(key);
 	}
 
-	public void parseOutput(Map<String, Object> map, String tPath, PrintWriter writer)
+	public void parseOutput(Map<String, Object> map, String tPath, HttpServletResponse resp)
 	throws Exception {
-		parser.parseOutput(map, tPath, writer);
+		parser.parseOutput(map, tPath, resp.getWriter());
 		
 	}
 

@@ -121,16 +121,14 @@ public class ParseUtil {
 	
 	public String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
 		File rootPath = new File(".");
-		//FIXME magic string
-		path = rootPath.getCanonicalPath() + templatePath +  File.separator + path;
+		path = getFilePath(path);
 		String q = readFile(path);
 		return parseQuery(settings, q);
 	}
 
 	public static String parseQuery( String path,Map<String,Object> settings) throws Exception{
 		File rootPath = new File(".");
-		//FIXME magic string
-		path = rootPath.getCanonicalPath() + templatePath +  File.separator + path;
+		path = getFilePath(path);
 		String q = readFile(path);
 		return parseQuery(settings, q);
 	}
@@ -144,7 +142,7 @@ public class ParseUtil {
 				key = entry.getKey();
 				valObj = entry.getValue();
 				val = valObj==null?"null":valObj.toString();
-				token = "\\{\\{" + key + "\\}\\}";
+				token = "\\$\\{" + key + "\\}";
 				q = q.replaceAll(token, val);
 			}
 		} catch (Exception ex) {

@@ -65,7 +65,9 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	}
 
 
-	public abstract void initENT();
+	public void initENT() throws ENTException{
+		nit.initNIT(this.getClass());
+	}
 
 	public ENT(){}
 	public ENT(Connection con) throws ENTException{
@@ -420,7 +422,8 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 	}
 	protected void loadParamMap(Map<String, Object> paramMap) throws IllegalAccessException {
-		for (Field f : this.getClass().getDeclaredFields()){
+		//for (Field f : this.getClass().getDeclaredFields()){
+		for (Field f : this.getClass().getFields()){
 			paramMap.put(f.getName(), f.get(this));
 		}
 	}
