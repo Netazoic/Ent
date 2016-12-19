@@ -11,7 +11,7 @@ import javax.servlet.http.HttpSession;
 
 
 
-public interface NetRoute {
+public interface RouteAction {
 	public abstract void doRoute(HttpServletRequest request, HttpServletResponse
 	  response, HttpSession session) throws ServletException, IOException, Exception;
 

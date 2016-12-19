@@ -36,7 +36,7 @@ import com.netazoic.util.ParseUtil;
  */
 
 public class ServENT extends HttpServlet {
-	public Map<String, NetRoute> routeMap;
+	public Map<String, RouteAction> routeMap;
 	public String defaultRoute;
 	public  DataSource dataSource = null;
 	public String driverManagerURL, driverManagerUser, driverManagerPwd;
@@ -55,7 +55,7 @@ public class ServENT extends HttpServlet {
 		// We need to create the ConnectionPool, ServerSettings, Codes,
 		// Authenticator, and anything else we need here.
 		context = config.getServletContext();
-		routeMap = new HashMap<String,NetRoute>();
+		routeMap = new HashMap<String,RouteAction>();
 		String jndiDB = null;
 		String sqliteDB = null;
 		synchronized (context) {
@@ -150,13 +150,10 @@ public class ServENT extends HttpServlet {
 		}
 	}
 
-	public NetRoute getRoute(HttpServletRequest request) {
+	public RouteAction getRouteHandler(HttpServletRequest request) {
 		String routeString = getRoutePrimary(request);
-
-
-
-		NetRoute route = (NetRoute)routeMap.get(routeString);
-		if(route==null) route = (NetRoute)routeMap.get(defaultRoute);
+		RouteAction route = (RouteAction)routeMap.get(routeString);
+		if(route==null) route = (RouteAction)routeMap.get(defaultRoute);
 		return route;
 	}
 
@@ -177,6 +174,10 @@ public class ServENT extends HttpServlet {
 		}
 		return routeString;
 	}
+	
+	public String getRouteString(HttpServletRequest request){
+		return getRoutePrimary(request);
+	}
 
 
 	public Connection getConnection() throws SQLException {
@@ -190,6 +191,17 @@ public class ServENT extends HttpServlet {
 			}
 		}
 		return con;
+	}
+	
+	public HashMap<String, Object> getRequestMap(HttpServletRequest request) {
+		HashMap<String,Object> m = new HashMap<String,Object>();
+		Enumeration<String> rkeys = request.getAttributeNames();
+		String k;
+		while (rkeys.hasMoreElements()){
+			k = rkeys.nextElement();
+			m.put(k, request.getAttribute(k));
+		}
+		return m;
 	}
 
 	public Map<Object, String> getSettings() {
@@ -228,7 +240,7 @@ public class ServENT extends HttpServlet {
 		Enumeration<String> params = request.getParameterNames();
 		doParamParsing(request, params);
 		HttpSession session = request.getSession();
-		NetRoute route = getRoute(request);
+		RouteAction route = getRouteHandler(request);
 		if (route!=null)
 			try {
 				route.doRoute(request, response, session);
@@ -241,7 +253,7 @@ public class ServENT extends HttpServlet {
 		}
 	}
 
-	public abstract class RouteEO implements NetRoute {
+	public abstract class RouteEO implements RouteAction {
 
 		public void doRoute(HttpServletRequest request,
 				HttpServletResponse response, HttpSession session)

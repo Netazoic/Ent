@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,11 +19,16 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netazoic.todos.DO.DO_Class;
+import com.netazoic.todos.DO.DO_TPL;
 import com.netazoic.util.ParseUtil;
 import com.netazoic.util.SQLUtil;
 
@@ -90,6 +96,26 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		//overwrite with actual class if desired
 	}
 
+	
+	public Long createRecord() throws ENTException {
+		String q = null;
+		try{
+			String ctp = nit.sql_CreateENT;
+			HashMap<String, Object> map = getFieldMap();
+			q = parseUtil.parseQuery(map, ctp);
+			String errMsg = "Create Record function Assumes that recordID will be returned by the sql CREATE script." +  
+			"So the sql needs to end with a ''RETURNING <id_field>'' statement";
+			String ret = SQLUtil.execSQL(q, nit.nitIDField.getName(), con);
+			if(ret==null) throw new ENTException(errMsg);
+			Long id = Long.parseLong(ret);
+			nit.nitIDField.set(this, id);
+			return id;
+		}catch(Exception ex){
+			throw new ENTException(ex);
+		}finally{
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#createRecord(javax.servlet.http.HttpServletRequest, java.sql.Connection)
 	 */
@@ -127,6 +153,11 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 		return fields;
 	}
+	
+	public List<Field> getFields(){
+		return getFields(new LinkedList<Field>(),this.getClass(),false,true);
+	
+	}
 
 	public static List<Field> getFields(List<Field> fields, Class<?> type, boolean flgInherit, boolean flgPublic) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
@@ -149,6 +180,22 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 		return fields;
 	}
+	
+	@JsonIgnore
+	public HashMap<String,Object> getFieldMap(){
+		 HashMap<String,Object> fldMap = new HashMap<String,Object>();
+
+		for(Field f : this.getClass().getDeclaredFields()){
+			try {
+				fldMap.put(f.getName(), f.get(this));
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return fldMap;		
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#getJSON()
 	 */
@@ -297,6 +344,44 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			}
 		}
 	}
+	
+	public void	setFieldVals(HttpServletRequest request)
+			throws ENTException {
+
+		//Set object values based on form input
+		Enumeration params = request.getAttributeNames();
+		List<Field> flds= getFields();
+		Map<String,Field> fldMap = new HashMap();
+		for(Field f : flds){
+			fldMap.put(f.getName(), f);
+		}
+		String fldName;
+		Object fldVal;
+		Field f;
+		Class fType;
+		Date d = new Date();
+		String q = "";
+
+		//q = "UPDATE donation SET \n";
+		while(params.hasMoreElements()){
+			fldName = (String)params.nextElement();
+			if(!fldMap.containsKey(fldName))continue;
+			fldVal = (String)request.getAttribute(fldName);
+			f = fldMap.get(fldName);
+			if(fldVal!=null && fldVal.equals(""))fldVal = null;
+			if(fldVal == null)	fldVal = null;
+			if(fldVal != null){
+				//whitelist this text
+				//fldVal = JSONUtil.whiteWashString((String)fldVal, null);
+			}
+			try{
+				setFieldVal(f,fldVal);
+			}catch(Exception ex){
+				throw new ENTException(ex);
+			}
+		}
+	}
+
 
 
 
