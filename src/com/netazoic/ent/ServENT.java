@@ -40,6 +40,8 @@ public class ServENT extends HttpServlet {
 	public String defaultRoute;
 	public  DataSource dataSource = null;
 	public String driverManagerURL, driverManagerUser, driverManagerPwd;
+	
+	public boolean flgDebug = true;
 
 	public ParseUtil parser = new ParseUtil();
 
@@ -112,11 +114,68 @@ public class ServENT extends HttpServlet {
 
 	}
 
-	public void ajaxResponse(String json, HttpServletResponse response)
+	public void ajaxError(Exception ex, HttpServletResponse res) throws IOException{
+		ajaxError(ex.getMessage(),res);
+	}
+	
+	public void ajaxError(Exception ex, HttpServletResponse res, boolean flgDebug) throws IOException {
+		ajaxError(ex, res);
+		String jsonError = getJSON(ex);
+
+		if(flgDebug){
+			String stMsg = "\n\n";
+			StackTraceElement[] ste = ex.getStackTrace();
+			for(StackTraceElement st : ste){
+				stMsg += st.toString() + "\n";
+			}
+			res.getWriter().print(stMsg);
+		}
+	}
+	
+	public void ajaxError(String errMsg,HttpServletResponse res) throws IOException{
+		//res.sendError(ex.getMessage());
+				PrintWriter pw=null;
+				try{
+					pw = res.getWriter();
+				}catch(IllegalStateException isex){
+					res.reset();
+					pw = res.getWriter();
+				}
+				res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,errMsg); //500
+				//res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errMsg);
+				res.setContentType("text");
+				res.setHeader("Cache-Control", "no-cache");
+	
+				pw.print(errMsg);
+	}
+
+
+	public void ajaxResponseJSON(String json, HttpServletResponse response)
 			throws IOException {
 		response.setContentType("application/json");
 		response.setHeader("Cache-Control", "no-cache");
 		response.getWriter().write(json);
+	}
+	
+	public void ajaxResponse(String strResponse, HttpServletResponse response)
+			throws IOException {
+		response.setContentType("text");
+		response.setHeader("Cache-Control", "no-cache");
+		response.getWriter().write(strResponse);
+	}
+	
+	public Boolean checkAJAX(HttpServletRequest request){
+		/* Determines if this request passed in by an ajax XHR method
+		 * 
+		 */
+		Boolean flgXhr = false;
+		String strXhr = (String) request.getHeader("X-Requested-With");
+		if (strXhr == null){
+			strXhr = (String)request.getAttribute("xhr");
+			if(strXhr==null || !strXhr.equalsIgnoreCase("true")) strXhr = null;
+		}
+		 flgXhr = (strXhr != null && !strXhr.equals("com.android.browser"));
+		 return(flgXhr);
 	}
 
 	public void doParamParsing(HttpServletRequest request,
@@ -220,6 +279,12 @@ public class ServENT extends HttpServlet {
 	public void putSettings(Map<Object,String>settings){
 		getServletContext().setAttribute(ENT_Param.Settings.name(), settings);
 	}
+	
+	
+	public String getJSON(Object obj) throws JsonProcessingException{
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(obj);
+	}
 
 	public static JsonNode putToJSON(HttpServletRequest req) throws JsonProcessingException, IOException {
 		BufferedReader br = new BufferedReader(new InputStreamReader(req.getInputStream()));
@@ -241,11 +306,19 @@ public class ServENT extends HttpServlet {
 		doParamParsing(request, params);
 		HttpSession session = request.getSession();
 		RouteAction route = getRouteHandler(request);
+		//Boolean flgXHR = checkAJAX(request);
+		//Assume all requests coming from Fetch
+		Boolean flgAjax = true;
 		if (route!=null)
 			try {
 				route.doRoute(request, response, session);
-			} catch (Exception e) {
-				throw new ServletException(e);
+			} catch (Exception ex) {
+				if(flgAjax){
+					ajaxError(ex,response,flgDebug);
+					//ajaxResponse(ex.getMessage(),response);
+				}else{
+					throw new ServletException(ex);
+				}
 			}
 		else {
 			// no handler for the requested route

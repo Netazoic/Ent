@@ -142,6 +142,7 @@ public class ParseUtil {
 				key = entry.getKey();
 				valObj = entry.getValue();
 				val = valObj==null?"null":valObj.toString();
+				val = "'" + val + "'";
 				token = "\\$\\{" + key + "\\}";
 				q = q.replaceAll(token, val);
 			}

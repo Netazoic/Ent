@@ -101,8 +101,9 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		String q = null;
 		try{
 			String ctp = nit.sql_CreateENT;
+			assert(ctp!=null);
 			HashMap<String, Object> map = getFieldMap();
-			q = parseUtil.parseQuery(map, ctp);
+			q = parseUtil.parseQueryFile(map, ctp);
 			String errMsg = "Create Record function Assumes that recordID will be returned by the sql CREATE script." +  
 			"So the sql needs to end with a ''RETURNING <id_field>'' statement";
 			String ret = SQLUtil.execSQL(q, nit.nitIDField.getName(), con);
@@ -418,6 +419,13 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		}
 		else if(type.equals(Long.class) && val instanceof java.lang.Integer){
 			val = Long.valueOf((Integer)val);
+		}
+		else if(type.equals(Long.class) && val instanceof java.lang.String){
+			try{
+				val = Long.valueOf((String)val);
+			}catch(Exception ex){
+				throw new ENTException("val cannot be converted to a Long: " + val);
+			}
 		}
 		else if(type.equals(java.util.UUID.class) && val instanceof java.lang.String){
 			try{
