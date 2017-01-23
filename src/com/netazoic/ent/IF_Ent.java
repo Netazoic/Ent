@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Map;
 
 public interface IF_Ent<T> {
 
@@ -25,9 +26,9 @@ public interface IF_Ent<T> {
 
 	public abstract void setFieldVals(ResultSet rs) throws SQLException, ENTException;
 
-	public abstract void updateRecord(HashMap<String,Object> paramMap)
-			throws ENTException;
+	public  void updateRecord(HashMap<String,Object> paramMap) throws ENTException;
 
 	void initENT() throws ENTException;
+
 
 }

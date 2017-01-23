@@ -150,16 +150,15 @@ public class ServENT extends HttpServlet {
 	}
 
 
-	public void ajaxResponseJSON(String json, HttpServletResponse response)
+	public void ajaxResponse(String strJson, HttpServletResponse response)
 			throws IOException {
-		response.setContentType("application/json");
-		response.setHeader("Cache-Control", "no-cache");
-		response.getWriter().write(json);
+		
+		ajaxResponse(strJson,"application/json",response);
 	}
-	
-	public void ajaxResponse(String strResponse, HttpServletResponse response)
+
+	public void ajaxResponse(String strResponse, String contentType, HttpServletResponse response)
 			throws IOException {
-		response.setContentType("text");
+		response.setContentType(contentType);
 		response.setHeader("Cache-Control", "no-cache");
 		response.getWriter().write(strResponse);
 	}

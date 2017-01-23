@@ -22,6 +22,8 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
 
+
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -128,6 +130,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	public abstract void deleteRecord(String webuserID, String comments)
 			throws ENTException;
 
+	@JsonIgnore
 	public static List<Field> getAllFields(List<Field> fields, Class<?> type) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
 		for (Field field: type.getDeclaredFields()) {
@@ -141,6 +144,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		return fields;
 	}
 
+	@JsonIgnore
 	public static List<Field> getAllFields(List<Field> fields, Class<?> type,boolean flgInherit) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
 		for (Field field: type.getDeclaredFields()) {
@@ -155,11 +159,12 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		return fields;
 	}
 	
+	@JsonIgnore
 	public List<Field> getFields(){
 		return getFields(new LinkedList<Field>(),this.getClass(),false,true);
 	
 	}
-
+	@JsonIgnore
 	public static List<Field> getFields(List<Field> fields, Class<?> type, boolean flgInherit, boolean flgPublic) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
 
@@ -200,6 +205,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#getJSON()
 	 */
+	@JsonIgnore
 	public String getJSON() throws  ENTException{
 		String json = null;
 		//Jackson
@@ -215,6 +221,8 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			throw new ENTException(e);
 		} catch (IOException e) {
 			throw new ENTException(e);
+		} catch (Exception ex){
+			throw new ENTException(ex);
 		}
 		return json;
 	}
@@ -420,6 +428,11 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		else if(type.equals(Long.class) && val instanceof java.lang.Integer){
 			val = Long.valueOf((Integer)val);
 		}
+		else if (type.equals(Long.class)&& val instanceof java.math.BigDecimal){
+			BigDecimal bd = (BigDecimal) val;
+			if (bd.scale()<=0) val = bd.longValue();
+			else throw new ENTException("Could not convert BigDecimal to Long: " + val.toString());
+		}
 		else if(type.equals(Long.class) && val instanceof java.lang.String){
 			try{
 				val = Long.valueOf((String)val);
@@ -442,11 +455,16 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		return val;
 	}
 
+	public void updateRecord() throws ENTException{
+		HashMap<String,Object> map = this.getFieldMap();
+		updateRecord(map);
+	}
 
 	/* (non-Javadoc)
 	 * @see com.netazoic.ent.IF_Ent#updateRecord(javax.servlet.http.HttpServletRequest)
 	 */
-	public void updateRecord(Map<String,Object> paramMap) throws ENTException{
+	@Override
+	public void updateRecord(HashMap<String,Object> paramMap) throws ENTException{
 		boolean flgInherit = true;
 		boolean flgPublic = true;
 		try {
@@ -462,11 +480,11 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		//Only update the fields that are actually present in the form input
 		//Works with multi-page forms
 		try{
-			assert(nit.nitTable != null && nit.nitIDField != null && nit.nitID != null);
+			assert(nit.nitTable != null && nit.nitIDField != null);
 		}catch(Exception ex){
 			throw new ENTException("nit variables not set for this object.  Cannot update record.");
 		}
-		Set<Entry<String,Object>> params = paramMap.entrySet();
+
 		Map<String,Field> fldMap = new HashMap<String, Field>();
 		List<Field> flds= getFields(new LinkedList<Field>(),this.getClass(),flgInherit, flgPublic);
 		for(Field f : flds){
@@ -483,16 +501,19 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 		String q;
 		q = "UPDATE " + nit.nitTable + " SET \n";
-		while(params.iterator().hasNext()){
-			fld = (String)params.iterator().next().getKey();
-			if(!fldMap.containsKey(fld))continue;
-			f = fldMap.get(fld);
-			val = paramMap.get(fld);
-
+		for(String key : paramMap.keySet()){
+			f = fldMap.get(key);
+			if(f==null) continue;
+			//if(!fldMap.containsKey(k)) continue;
+			val = paramMap.get(key);
+			fld = f.getName();
 			fType = f.getType();
 			if(val!=null && val.equals(""))val = null;
-			if(val == null)
-				q += fld + "= null, \n";
+			if(val == null){
+				//continue -- don't set nulls
+				// q += fld + "= null, \n";
+				continue;
+			}
 			else{
 				if(fType.isInstance(d))
 					q += fld + "= '" + val+"'::TimeStamp, \n";
@@ -509,8 +530,13 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			return;
 		}
 		q = q.substring(0,q.lastIndexOf(",")) + "\n";
-		q += " WHERE " + nit.nitIDField.getName() +"='" + nit.nitID + "'";
-
+		try {
+			q += " WHERE " + nit.nitIDField.getName() +"='" + nit.nitIDField.get(this) + "'";
+		} catch (IllegalArgumentException e) {
+			throw new ENTException(e);
+		} catch (IllegalAccessException e) {
+			throw new ENTException(e);
+		}
 		SQLUtil.execSQL(q,con);
 
 	}
