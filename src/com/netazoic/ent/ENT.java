@@ -29,8 +29,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netazoic.todos.DO.DO_Class;
-import com.netazoic.todos.DO.DO_TPL;
+
 import com.netazoic.util.ParseUtil;
 import com.netazoic.util.SQLUtil;
 

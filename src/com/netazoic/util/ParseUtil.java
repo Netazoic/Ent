@@ -90,7 +90,7 @@ public class ParseUtil {
 		return parseQuery(settings, q);
 	}
 
-	public void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
+	public static void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
 		String tmp = null;
 		Object valObj;
 		try {
