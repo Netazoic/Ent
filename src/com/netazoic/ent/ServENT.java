@@ -27,6 +27,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netazoic.util.ParseUtil;
+import com.netazoic.util.ParseUtil2;
 
 /*
  * References:
@@ -43,7 +44,7 @@ public class ServENT extends HttpServlet {
 	
 	public boolean flgDebug = true;
 
-	public ParseUtil parser = new ParseUtil();
+	public ParseUtil2 parser = new ParseUtil2();
 
 	public enum ENT_Param{
 		netRoute, routeString, Settings, jndiDB, sqliteDB, dbUser, dbPwd, TemplatePath;}
