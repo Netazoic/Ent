@@ -67,19 +67,6 @@ public class ParseUtil2 {
 		handlebars = new Handlebars(loader);
 	}
 
-	public void parseTest(Map<String, Object> map, String tPath, PrintWriter printWriter) throws IOException{
-
-		if(handlebars == null) initHBS(tPath);
-
-
-		Template template = handlebars.compile(tPath);
-
-		String parseString =  (template.apply(map));
-
-		printWriter.print(parseString);
-	}
-
-
 	private static String getFilePath(String path) throws Exception{
 		String[] tPaths = null;
 		String tempPath = null;
@@ -133,33 +120,12 @@ public class ParseUtil2 {
 		return parseQuery(settings, q);
 	}
 
-	public static void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
-		String tmp = null;
-		Object valObj;
-		try {
 
-			tPath = getFilePath(tPath);
-
-			byte[] encoded = Files.readAllBytes(Paths.get(tPath));
-			tmp =  StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
-			String key, val,token;
-			for(Map.Entry<String,Object> entry: settings.entrySet()){
-				key = entry.getKey();
-				valObj = entry.getValue();
-				val = valObj==null?"null":valObj.toString();
-				token = "\\{\\{" + key + "\\}\\}";
-				tmp = tmp.replaceAll(token, val);
-			}
-		} catch (Exception ex) {
-			throw ex;
-		}
-		//Convert Markdown to html?
-		String ext = tPath.substring(tPath.lastIndexOf("."));
-		if(ext.equals(EXTENSION.MD.ext)){
-			PegDownProcessor pd = new PegDownProcessor();
-			tmp = pd.markdownToHtml(tmp);
-		}
-		pw.print(tmp);
+	public void parseOutput(Map<String, Object> map, String tPath, PrintWriter printWriter) throws IOException{
+		if(handlebars == null) initHBS(tPath);
+		Template template = handlebars.compile(tPath);
+		String parseString =  (template.apply(map));
+		printWriter.print(parseString);
 	}
 
 	public String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
