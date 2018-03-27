@@ -10,6 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.io.FileUtils;
 import org.pegdown.PegDownProcessor;
 
@@ -18,10 +24,7 @@ import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
-
-
-
-
+import com.netazoic.ent.ServENT.ENT_Param;
 
 
 
@@ -120,12 +123,34 @@ public class ParseUtil2 {
 		return parseQuery(settings, q);
 	}
 
+	public void parseOutput(Map<String, Object> map, String vPath) throws IOException {
+		HttpServletResponse response = (HttpServletResponse) map.get(ENT_Param.response.name());
+		boolean isJSP = vPath.toLowerCase().indexOf(".jsp") >= 0;
+		if(isJSP) {
+			parseJSP(map,vPath);
+		}
+		else {
+			parseOutput(map,vPath,response.getWriter());
+		}
+	}
 
 	public void parseOutput(Map<String, Object> map, String tPath, PrintWriter printWriter) throws IOException{
 		if(handlebars == null) initHBS(tPath);
 		Template template = handlebars.compile(tPath);
 		String parseString =  (template.apply(map));
 		printWriter.print(parseString);
+	}
+
+	public void parseJSP(Map<String,Object> map, String view) throws IOException {
+		try {
+			HttpServletRequest request = (HttpServletRequest) map.get(ENT_Param.request.name());
+			HttpServletResponse response = (HttpServletResponse) map.get(ENT_Param.response.name());
+			ServletContext context = (ServletContext) map.get(ENT_Param.context.name());
+			RequestDispatcher dispatcher = context.getRequestDispatcher(view);
+			dispatcher.forward(request,response);
+		}catch(ServletException ex) {
+			throw new IOException(ex);
+		}
 	}
 
 	public String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
@@ -168,13 +193,15 @@ public class ParseUtil2 {
 
 	static String readFile(String path, Charset encoding) 
 			throws IOException 
-			{
+	{
 		byte[] encoded = Files.readAllBytes(Paths.get(path));
 		return encoding.decode(ByteBuffer.wrap(encoded)).toString();
-			}
+	}
 
 	public static String readLargeFile(File file) throws IOException{
 		return FileUtils.readFileToString(file);
 	}
+
+
 }
 

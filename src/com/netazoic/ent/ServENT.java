@@ -47,7 +47,7 @@ public class ServENT extends HttpServlet {
 	public ParseUtil2 parser = new ParseUtil2();
 
 	public enum ENT_Param{
-		netRoute, routeString, Settings, jndiDB, sqliteDB, dbUser, dbPwd, TemplatePath;}
+		netRoute, routeString, Settings, jndiDB, sqliteDB, dbUser, dbPwd, TemplatePath, request, response, context;}
 
 
 	public void init(ServletConfig config) throws javax.servlet.ServletException {
@@ -327,7 +327,9 @@ public class ServENT extends HttpServlet {
 	}
 
 	public abstract class RouteEO implements RouteAction {
-
+		public void init() {
+			//nada
+		}
 		public void doRoute(HttpServletRequest request,
 				HttpServletResponse response, HttpSession session)
 						throws Exception {

@@ -1,8 +1,12 @@
 package com.netazoic.util;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,5 +30,18 @@ public class JSONUtil {
 			throw new ENTException(e);
 		}
 		return json;
+	}
+
+	public static Map getJSONMap(String json) throws ENTException {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			Map<String, Object> map = new HashMap<String, Object>();
+			// convert JSON string to Map
+			map = mapper.readValue(json, new TypeReference<Map<String, String>>(){});
+			return map;
+		}catch (Exception ex) {
+			throw new ENTException(ex);
+		}
+
 	}
 }
