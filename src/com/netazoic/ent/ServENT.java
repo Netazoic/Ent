@@ -36,13 +36,13 @@ import com.netazoic.util.ParseUtil2;
  * http://tomcat.apache.org/tomcat-6.0-doc/jndi-datasource-examples-howto.html#PostgreSQL
  */
 
-public class ServENT extends HttpServlet {
+public class ServENT extends HttpServlet implements ifServENT {
 	public Map<String, RouteAction> routeMap;
 	public String defaultRoute;
 	public  DataSource dataSource = null;
 	public String driverManagerURL, driverManagerUser, driverManagerPwd;
 	
-	public boolean flgDebug = true;
+	public boolean flgDebug = false;
 
 	public ParseUtil2 parser = new ParseUtil2();
 
@@ -226,7 +226,7 @@ public class ServENT extends HttpServlet {
 		if(url.matches("\\?")) idxQ = url.indexOf('?');
 		if(url.matches("#")) idxP = url.indexOf('#');
 		idxE = idxQ>0?idxQ:idxP>0?idxP:url.length();
-		String routeString = url.substring(url.lastIndexOf('/')+1,idxE);
+		String routeString = url.substring(url.indexOf('/'),idxE);
 
 		if(routeString != null){
 			request.setAttribute(ENT_Param.routeString.name(), routeString);
@@ -269,6 +269,17 @@ public class ServENT extends HttpServlet {
 	public String getSetting(String key){
 		return getSettings().get(key);
 	}
+	
+	public String parseQuery(String tPath) throws Exception {
+		Map<String,Object> map = new HashMap();
+		return parser.parseQueryFile(map, tPath);
+	}
+
+	@Override
+	public String parseQuery( String tPath, Map<String, Object> map) throws Exception {
+		return parser.parseQuery(tPath, map);
+	}
+
 
 	public void parseOutput(Map<String, Object> map, String tPath, HttpServletResponse resp)
 	throws Exception {

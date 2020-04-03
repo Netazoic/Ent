@@ -13,12 +13,19 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.pegdown.PegDownProcessor;
 
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.Template;
+import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
+import com.github.jknack.handlebars.io.FileTemplateLoader;
+import com.github.jknack.handlebars.io.TemplateLoader;
+
 public class ParseUtil {
 	public ParseUtil(){}
 	public static String templatePath;
 	public static String appRootPath;
-	
+
 	public enum EXTENSION{
+		HBS(".hbs"),
 		MD(".md"),
 		HTM(".htm"),
 		HTML(".html"),
@@ -29,10 +36,16 @@ public class ParseUtil {
 		JPG(".jpg"),
 		GIF(".gif"),
 		PNG(".png");
-		
+
 		String ext;
 		EXTENSION(String e){
 			ext = e;
+		}
+		public static EXTENSION geEXT(String tgtExt){
+			for(EXTENSION Ext : EXTENSION.values()) {
+				if (Ext.ext.equals(tgtExt)) return Ext;
+			}
+			throw new Error("Template extension not recognized: " + tgtExt);
 		}
 	}
 
@@ -53,7 +66,7 @@ public class ParseUtil {
 		try{
 			if(appRootPath!=null){
 				for(String tp : tPaths){
-					
+
 					String lastChar = tp.substring(tp.length()-1);
 					boolean endsWith = (lastChar.equals(File.separator)) || (lastChar.equals("/"));
 					tempPath = appRootPath + tp;
@@ -93,32 +106,66 @@ public class ParseUtil {
 	public static void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
 		String tmp = null;
 		Object valObj;
+		String extS;
+		EXTENSION ext;
+		String fullPath;
 		try {
-
-			tPath = getFilePath(tPath);
-
-			byte[] encoded = Files.readAllBytes(Paths.get(tPath));
-			tmp =  StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
-			String key, val,token;
-			for(Map.Entry<String,Object> entry: settings.entrySet()){
-				key = entry.getKey();
-				valObj = entry.getValue();
-				val = valObj==null?"null":valObj.toString();
-				token = "\\{\\{" + key + "\\}\\}";
-				tmp = tmp.replaceAll(token, val);
-			}
+			fullPath = getFilePath(tPath);
+			fullPath = fullPath.replaceAll("\\\\", "/");
+			extS = tPath.substring(tPath.lastIndexOf("."));
+			ext = EXTENSION.geEXT(extS);
+			switch(ext) {
+			case HBS:
+				// parse handlebars
+				//				TemplateLoader loader = new ClassPathTemplateLoader();
+				TemplateLoader loader = new FileTemplateLoader("/templates");
+				Handlebars handlebars;
+				Template template = null;
+				loader.setSuffix(".hbs");
+				// Strip the extension @#$#@#
+				tPath = tPath.substring(0,tPath.lastIndexOf("."));
+				appRootPath = appRootPath.replaceAll("\\\\","/");
+				String[] tPaths = templatePath.split(";");
+				for(String tp : tPaths){
+					try {
+						loader.setPrefix(appRootPath + tp);
+						handlebars = new Handlebars(loader);
+						template = handlebars.compile(tPath);
+						//If we get this far we have found our template
+						break;
+					}catch(IOException ex) {
+						// Not found
+					}
+				}
+				if(template!=null) {
+					tmp = template.apply(settings);
+				}else throw new Exception("Could not parse template: " + tPath);
+				break;
+			default:
+				// manual parse
+				byte[] encoded = Files.readAllBytes(Paths.get(fullPath));
+				tmp =  StandardCharsets.UTF_8.decode(ByteBuffer.wrap(encoded)).toString();
+				String key, val,token;
+				for(Map.Entry<String,Object> entry: settings.entrySet()){
+					key = entry.getKey();
+					valObj = entry.getValue();
+					val = valObj==null?"null":valObj.toString();
+					token = "\\{\\{" + key + "\\}\\}";
+					tmp = tmp.replaceAll(token, val);
+				}
+			}		
 		} catch (Exception ex) {
 			throw ex;
 		}
 		//Convert Markdown to html?
-		String ext = tPath.substring(tPath.lastIndexOf("."));
+
 		if(ext.equals(EXTENSION.MD.ext)){
 			PegDownProcessor pd = new PegDownProcessor();
 			tmp = pd.markdownToHtml(tmp);
 		}
 		pw.print(tmp);
 	}
-	
+
 	public String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
 		File rootPath = new File(".");
 		path = getFilePath(path);
@@ -159,10 +206,10 @@ public class ParseUtil {
 
 	static String readFile(String path, Charset encoding) 
 			throws IOException 
-			{
+	{
 		byte[] encoded = Files.readAllBytes(Paths.get(path));
 		return encoding.decode(ByteBuffer.wrap(encoded)).toString();
-			}
+	}
 
 	public static String readLargeFile(File file) throws IOException{
 		return FileUtils.readFileToString(file);
