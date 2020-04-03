@@ -44,7 +44,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 	
 	public boolean flgDebug = false;
 
-	public ParseUtil2 parser = new ParseUtil2();
+	public ParseUtil parser = new ParseUtil();
 
 	public enum ENT_Param{
 		netRoute, routeString, Settings, jndiDB, sqliteDB, dbUser, dbPwd, TemplatePath, request, response, context;}
