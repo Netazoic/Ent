@@ -2,6 +2,7 @@ package com.netazoic.ent;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -186,6 +187,28 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 		return fields;
 	}
+	
+	@JsonIgnore
+	public static List<Field> getLocalFields(List<Field> fields, Class<?> type, boolean flgPublic) {
+		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
+
+		if(flgPublic)
+			for (Field field: type.getDeclaredFields()) {
+				//local public fields only
+				if(Modifier.isPublic(field.getModifiers())) {
+					fields.add(field);
+				}
+			}
+
+		else
+			for (Field field: type.getDeclaredFields()) {
+				fields.add(field);
+			}
+
+
+		return fields;
+	}
+
 	
 	@JsonIgnore
 	public HashMap<String,Object> getFieldMap(){
