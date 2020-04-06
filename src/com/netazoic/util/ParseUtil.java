@@ -23,7 +23,8 @@ public class ParseUtil {
 	public ParseUtil(){}
 	public static String templatePath;
 	public static String appRootPath;
-
+	Handlebars handlebars;
+	
 	public enum EXTENSION{
 		HBS(".hbs"),
 		MD(".md"),
@@ -35,7 +36,8 @@ public class ParseUtil {
 		PDF(".pdf"),
 		JPG(".jpg"),
 		GIF(".gif"),
-		PNG(".png");
+		PNG(".png"),
+		SQL(".sql");
 
 		String ext;
 		EXTENSION(String e){
@@ -104,16 +106,33 @@ public class ParseUtil {
 	}
 
 	public static void parseOutput(Map<String,Object> settings, String tPath, PrintWriter pw) throws Exception{
-		String tmp = null;
 		Object valObj;
 		String extS;
-		EXTENSION ext;
 		String fullPath;
+		String tmp = parseFileMulti(tPath,settings);
+		//Convert Markdown to html?
+
+//		if(ext.equals(EXTENSION.MD.ext)){
+//			PegDownProcessor pd = new PegDownProcessor();
+//			tmp = pd.markdownToHtml(tmp);
+//		}
+		pw.print(tmp);
+	}
+	private static String parseFileMulti( String tPath, Map<String, Object> settings) throws Exception {
+		Object valObj;
+		String extS;
+		String fullPath;
+		String tmp = null;
 		try {
+			EXTENSION ext;
 			fullPath = getFilePath(tPath);
 			fullPath = fullPath.replaceAll("\\\\", "/");
 			extS = tPath.substring(tPath.lastIndexOf("."));
 			ext = EXTENSION.geEXT(extS);
+			if(ext.equals(EXTENSION.SQL)) {
+				// Assume sql files are hbs files
+					ext = EXTENSION.HBS;
+			}
 			switch(ext) {
 			case HBS:
 				// parse handlebars
@@ -121,7 +140,7 @@ public class ParseUtil {
 				TemplateLoader loader = new FileTemplateLoader("/templates");
 				Handlebars handlebars;
 				Template template = null;
-				loader.setSuffix(".hbs");
+				loader.setSuffix(extS);
 				// Strip the extension @#$#@#
 				tPath = tPath.substring(0,tPath.lastIndexOf("."));
 				appRootPath = appRootPath.replaceAll("\\\\","/");
@@ -157,16 +176,14 @@ public class ParseUtil {
 		} catch (Exception ex) {
 			throw ex;
 		}
-		//Convert Markdown to html?
-
-		if(ext.equals(EXTENSION.MD.ext)){
-			PegDownProcessor pd = new PegDownProcessor();
-			tmp = pd.markdownToHtml(tmp);
-		}
-		pw.print(tmp);
+		return tmp;
 	}
 
-	public String parseQueryFile(Map<String,Object> settings, String path) throws Exception{
+	public String parseHBSQuery(String path, Map<String,Object> settings) throws Exception{
+		return parseFileMulti(path,settings);
+	}
+	
+	public String parseQueryFile(String path, Map<String,Object> settings) throws Exception{
 		File rootPath = new File(".");
 		path = getFilePath(path);
 		String q = readFile(path);
@@ -174,10 +191,7 @@ public class ParseUtil {
 	}
 
 	public static String parseQuery( String path,Map<String,Object> settings) throws Exception{
-		File rootPath = new File(".");
-		path = getFilePath(path);
-		String q = readFile(path);
-		return parseQuery(settings, q);
+		return parseFileMulti(path,settings);
 	}
 
 	public static String parseQuery(Map<String,Object> settings, String q) throws Exception{

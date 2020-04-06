@@ -272,7 +272,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 	
 	public String parseQuery(String tPath) throws Exception {
 		Map<String,Object> map = new HashMap();
-		return parser.parseQueryFile(map, tPath);
+		return parser.parseQueryFile(tPath, map);
 	}
 
 	@Override
@@ -338,6 +338,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 	}
 
 	public abstract class RouteEO implements RouteAction {
+		protected HashMap<String,Object> requestMap;
 		public void init() {
 			//nada
 		}
@@ -345,13 +346,17 @@ public class ServENT extends HttpServlet implements ifServENT {
 				HttpServletResponse response, HttpSession session)
 						throws Exception {
 			Connection con = null;
+			requestMap = getRequestMap(request);
 			try{
 				con = getConnection();
 				//Do stuff here
-				routeAction(request,response,con,session);
+				routeAction(request,response, con,session);
 			} 
 			catch (SQLException sqlException) {
 				sqlException.printStackTrace();
+			}
+			catch (Exception ex) {
+				ex.printStackTrace();
 			}
 			finally {
 				if (con != null) 
