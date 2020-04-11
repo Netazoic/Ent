@@ -301,7 +301,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
 		//Field[] flds = this.getClass().getDeclaredFields();
 		Object val;
-		String fld;
+		String fld = null;
 		Set<String> keys = paramMap.keySet();
 		Map<String,Object> lowerKeys = new HashMap<String,Object>();
 		for(String k : keys){
@@ -317,7 +317,9 @@ public abstract class ENT<T> implements IF_Ent<T>{
 				val = setFieldVal(f, val);
 			}catch(Exception ex){
 				@SuppressWarnings("unused")
-				String msg = ex.getMessage();
+				String msg = "";
+				if(fld!=null) msg += fld.toString() + "\n";
+				msg += ex.getMessage();
 				throw new ENTException(msg);
 				//continue;
 			}
@@ -431,6 +433,10 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			BigDecimal mybd = (BigDecimal)val;
 			val = mybd.intValueExact();					
 		}
+		else if((type.equals(Integer.class) || (type.equals(int.class))) && ( val instanceof java.lang.String)){
+			Integer intVal = Integer.valueOf((String)val);
+			val = intVal;					
+		}
 		else if(type.equals(String.class) && val instanceof java.math.BigDecimal){
 			//need to convert to a String
 			val = val.toString();
@@ -449,6 +455,14 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		}
 		else if(type.equals(Long.class) && val instanceof java.lang.Integer){
 			val = Long.valueOf((Integer)val);
+		}
+		else if (type.equals(Double.class)&& val instanceof java.lang.String){
+			try {
+			Double db = Double.valueOf((String) val);
+			val = db;
+			}catch(Exception ex) {
+				throw new ENTException("Could not convert String to Double: " + val.toString());
+			}
 		}
 		else if (type.equals(Long.class)&& val instanceof java.math.BigDecimal){
 			BigDecimal bd = (BigDecimal) val;

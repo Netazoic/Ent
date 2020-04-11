@@ -150,6 +150,30 @@ public class ServENT extends HttpServlet implements ifServENT {
 				pw.print(errMsg);
 	}
 
+	public void ajaxError(String errMsg, Exception ex, HttpServletResponse res) throws IOException{
+		//res.sendError(ex.getMessage());
+				PrintWriter pw=null;
+				try{
+					pw = res.getWriter();
+				}catch(IllegalStateException isex){
+					res.reset();
+					pw = res.getWriter();
+				}
+				res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,errMsg); //500
+				//res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, errMsg);
+				res.setContentType("text");
+				res.setHeader("Cache-Control", "no-cache");
+				if(flgDebug){
+					String stMsg = "\n\n";
+					StackTraceElement[] ste = ex.getStackTrace();
+					for(StackTraceElement st : ste){
+						stMsg += st.toString() + "\n";
+					}
+					res.getWriter().print(stMsg);
+				}
+	
+				pw.print(errMsg);
+	}
 
 	public void ajaxResponse(String strJson, HttpServletResponse response)
 			throws IOException {
