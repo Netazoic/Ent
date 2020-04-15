@@ -10,7 +10,6 @@ import java.util.Map;
 import com.netazoic.ent.ENTException;
 import com.netazoic.ent.ifServENT;
 import com.netazoic.ent.rdENT;
-import com.sun.istack.internal.logging.Logger;
 
 public  class RemoteDataObj implements ifRemoteDataObj{
 
