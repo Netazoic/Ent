@@ -37,7 +37,7 @@ public class JSONUtil {
 			ObjectMapper mapper = new ObjectMapper();
 			Map<String, Object> map = new HashMap<String, Object>();
 			// convert JSON string to Map
-			map = mapper.readValue(json, new TypeReference<Map<String, String>>(){});
+			map = mapper.readValue(json, new TypeReference<Map<String, Object>>(){});
 			return map;
 		}catch (Exception ex) {
 			throw new ENTException(ex);

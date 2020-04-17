@@ -296,128 +296,6 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	}
 
 
-	public void setFieldVals(Map<String,Object> paramMap) throws SQLException, ENTException{
-		//load object fields from similarly named db fields
-		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
-		//Field[] flds = this.getClass().getDeclaredFields();
-		Object val;
-		String fld = null;
-		Set<String> keys = paramMap.keySet();
-		Map<String,Object> lowerKeys = new HashMap<String,Object>();
-		for(String k : keys){
-			lowerKeys.put(k.toLowerCase(), paramMap.get(k));
-		}
-
-		for(Field f : flds){
-			try{
-				fld = f.getName().toLowerCase();
-				if(!lowerKeys.containsKey(fld))continue;
-				val = lowerKeys.get(fld);
-				//if(val==null) continue;
-				val = setFieldVal(f, val);
-			}catch(Exception ex){
-				@SuppressWarnings("unused")
-				String msg = "";
-				if(fld!=null) msg += fld.toString() + "\n";
-				msg += ex.getMessage();
-				throw new ENTException(msg);
-				//continue;
-			}
-		}
-	}
-
-	private void setIDFieldVal(String id) throws ENTException {
-		try{
-			nit.nitIDField.set(this, Long.parseLong(id));
-		}catch(IllegalAccessException ex){
-			throw new ENTException(ex);
-		}
-	}
-	private void setIDFieldVal(Long id) throws ENTException {
-		try{
-			nit.nitIDField.set(this, id);
-		}catch(IllegalAccessException ex){
-			throw new ENTException(ex);
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.netazoic.ent.IF_Ent#setFieldVals(java.sql.ResultSet)
-	 */
-	public void setFieldVals(ResultSet rs) throws SQLException, ENTException{
-		//load object fields from similarly named db fields
-		/*
-		 * At this level, the setFieldVals function can only set values on Public fields in the 
-		 * extending class. If you wish to work with private or package scope fields, override
-		 * this function with a copy in the local class.
-		 */
-		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
-		//Field[] flds = this.getClass().getDeclaredFields();
-		Object val;
-		String fld;
-
-		rs.next();
-		ResultSetMetaData rsmd = rs.getMetaData();
-		Map<String,Integer> colMap = new HashMap<String,Integer>();
-		for (int i = 1; i < rsmd.getColumnCount()+1; i++){
-			colMap.put(rsmd.getColumnName(i).toLowerCase(), i);
-		}
-		for(Field f : flds){
-			try{
-				fld = f.getName();
-				if(!colMap.containsKey(fld.toLowerCase()))continue;
-				val = rs.getObject(fld);
-				//if(val==null) continue;
-
-				val = setFieldVal(f, val);
-			}catch(Exception ex){
-				@SuppressWarnings("unused")
-				String msg = ex.getMessage();
-				throw new ENTException(msg);
-			}
-		}
-	}
-	
-	public void	setFieldVals(HttpServletRequest request)
-			throws ENTException {
-
-		//Set object values based on form input
-		Enumeration params = request.getAttributeNames();
-		List<Field> flds= getFields();
-		Map<String,Field> fldMap = new HashMap();
-		for(Field f : flds){
-			fldMap.put(f.getName(), f);
-		}
-		String fldName;
-		Object fldVal;
-		Field f;
-		Class fType;
-		Date d = new Date();
-		String q = "";
-
-		//q = "UPDATE donation SET \n";
-		while(params.hasMoreElements()){
-			fldName = (String)params.nextElement();
-			if(!fldMap.containsKey(fldName))continue;
-			fldVal = (String)request.getAttribute(fldName);
-			f = fldMap.get(fldName);
-			if(fldVal!=null && fldVal.equals(""))fldVal = null;
-			if(fldVal == null)	fldVal = null;
-			if(fldVal != null){
-				//whitelist this text
-				//fldVal = JSONUtil.whiteWashString((String)fldVal, null);
-			}
-			try{
-				setFieldVal(f,fldVal);
-			}catch(Exception ex){
-				throw new ENTException(ex);
-			}
-		}
-	}
-
-
-
-
 	private Object setFieldVal(Field f, Object val)
 			throws IllegalAccessException, ENTException {
 		Class<?> type = f.getType();
@@ -490,7 +368,123 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		}
 		return val;
 	}
+	private void setIDFieldVal(Long id) throws ENTException {
+		try{
+			nit.nitIDField.set(this, id);
+		}catch(IllegalAccessException ex){
+			throw new ENTException(ex);
+		}
+	}
+	public void setFieldVals(Map<String,Object> paramMap) throws SQLException, ENTException{
+		//load object fields from similarly named db fields
+		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
+		//Field[] flds = this.getClass().getDeclaredFields();
+		Object val;
+		String fld = null;
+		Set<String> keys = paramMap.keySet();
+		Map<String,Object> lowerKeys = new HashMap<String,Object>();
+		for(String k : keys){
+			lowerKeys.put(k.toLowerCase(), paramMap.get(k));
+		}
 
+		for(Field f : flds){
+			try{
+				fld = f.getName().toLowerCase();
+				if(!lowerKeys.containsKey(fld))continue;
+				val = lowerKeys.get(fld);
+				//if(val==null) continue;
+				val = setFieldVal(f, val);
+			}catch(Exception ex){
+				@SuppressWarnings("unused")
+				String msg = "";
+				if(fld!=null) msg += fld.toString() + "\n";
+				msg += ex.getMessage();
+				throw new ENTException(msg);
+				//continue;
+			}
+		}
+	}
+
+	public void	setFieldVals(HttpServletRequest request)
+			throws ENTException {
+	
+		//Set object values based on form input
+		Enumeration params = request.getAttributeNames();
+		List<Field> flds= getFields();
+		Map<String,Field> fldMap = new HashMap();
+		for(Field f : flds){
+			fldMap.put(f.getName(), f);
+		}
+		String fldName;
+		Object fldVal;
+		Field f;
+		Class fType;
+		Date d = new Date();
+		String q = "";
+	
+		//q = "UPDATE donation SET \n";
+		while(params.hasMoreElements()){
+			fldName = (String)params.nextElement();
+			if(!fldMap.containsKey(fldName))continue;
+			fldVal = (String)request.getAttribute(fldName);
+			f = fldMap.get(fldName);
+			if(fldVal!=null && fldVal.equals(""))fldVal = null;
+			if(fldVal == null)	fldVal = null;
+			if(fldVal != null){
+				//whitelist this text
+				//fldVal = JSONUtil.whiteWashString((String)fldVal, null);
+			}
+			try{
+				setFieldVal(f,fldVal);
+			}catch(Exception ex){
+				throw new ENTException(ex);
+			}
+		}
+	}
+	private void setIDFieldVal(String id) throws ENTException {
+		try{
+			nit.nitIDField.set(this, Long.parseLong(id));
+		}catch(IllegalAccessException ex){
+			throw new ENTException(ex);
+		}
+	}
+	/* (non-Javadoc)
+	 * @see com.netazoic.ent.IF_Ent#setFieldVals(java.sql.ResultSet)
+	 */
+	public void setFieldVals(ResultSet rs) throws SQLException, ENTException{
+		//load object fields from similarly named db fields
+		/*
+		 * At this level, the setFieldVals function can only set values on Public fields in the 
+		 * extending class. If you wish to work with private or package scope fields, override
+		 * this function with a copy in the local class.
+		 */
+		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
+		//Field[] flds = this.getClass().getDeclaredFields();
+		Object val;
+		String fld;
+
+		rs.next();
+		ResultSetMetaData rsmd = rs.getMetaData();
+		Map<String,Integer> colMap = new HashMap<String,Integer>();
+		for (int i = 1; i < rsmd.getColumnCount()+1; i++){
+			colMap.put(rsmd.getColumnName(i).toLowerCase(), i);
+		}
+		for(Field f : flds){
+			try{
+				fld = f.getName();
+				if(!colMap.containsKey(fld.toLowerCase()))continue;
+				val = rs.getObject(fld);
+				//if(val==null) continue;
+
+				val = setFieldVal(f, val);
+			}catch(Exception ex){
+				@SuppressWarnings("unused")
+				String msg = ex.getMessage();
+				throw new ENTException(msg);
+			}
+		}
+	}
+	
 	public void updateRecord() throws ENTException{
 		HashMap<String,Object> map = this.getFieldMap();
 		updateRecord(map);
