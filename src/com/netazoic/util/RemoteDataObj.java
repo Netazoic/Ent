@@ -136,12 +136,13 @@ public  class RemoteDataObj implements ifRemoteDataObj{
 		this.psDeleteRemoteData = psMap.get(RDQ_API_Param.psDeleteRemoteData.name());
 	}
 
-	public void createCombinedData() {
+	public Integer createCombinedData(boolean flgExpireExisting) {
+		int ctCreated = 0;
 		try {
 			con.setAutoCommit(false);
-			if(rdEnt.con == null) rdEnt.con = con;
-			rdEnt.expireCombinedRecs();
-			rdEnt.createCombinedRecs();
+			rdEnt.con = con;
+			if(flgExpireExisting) rdEnt.expireCombinedRecs();
+			ctCreated = rdEnt.createCombinedRecs();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
@@ -159,6 +160,7 @@ public  class RemoteDataObj implements ifRemoteDataObj{
 				e.printStackTrace();
 			}
 		}
+		return ctCreated;
 
 	}
 

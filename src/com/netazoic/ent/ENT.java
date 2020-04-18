@@ -339,7 +339,9 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			Double db = Double.valueOf((String) val);
 			val = db;
 			}catch(Exception ex) {
-				throw new ENTException("Could not convert String to Double: " + val.toString());
+				String strVal = (String) val;
+				if(strVal.equals("")) val = 0.0D;
+				else throw new ENTException("Could not convert String to Double: " + val.toString());
 			}
 		}
 		else if (type.equals(Long.class)&& val instanceof java.math.BigDecimal){
