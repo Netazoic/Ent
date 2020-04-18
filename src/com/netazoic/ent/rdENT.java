@@ -13,9 +13,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.joda.time.DateTime;
-
-import com.netazoic.covid19.ent.ifDataSrc;
 import com.netazoic.util.NamedParameterStatement;
 import com.netazoic.util.SQLUtil;
 

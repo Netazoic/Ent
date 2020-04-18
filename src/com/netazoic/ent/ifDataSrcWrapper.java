@@ -10,8 +10,7 @@ import java.util.HashMap;
 
 import org.apache.logging.log4j.Logger;
 
-import com.netazoic.covid19.ent.ifDataSrc;
-import com.netazoic.covid19.ent.ifDataType;
+import com.netazoic.covid.ent.ifDataType;
 import com.netazoic.ent.rdENT.DataFmt;
 import com.netazoic.ent.rdENT.SRC_ORG;
 import com.netazoic.util.NamedParameterStatement;
