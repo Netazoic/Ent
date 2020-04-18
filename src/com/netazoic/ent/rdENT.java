@@ -15,8 +15,7 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 
-import com.netazoic.covid.ent.ifDataSrc;
-import com.netazoic.covid.ent.ifDataSrcWrapper;
+import com.netazoic.covid19.ent.ifDataSrc;
 import com.netazoic.util.NamedParameterStatement;
 import com.netazoic.util.SQLUtil;
 

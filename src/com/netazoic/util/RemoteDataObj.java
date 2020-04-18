@@ -11,7 +11,6 @@ import com.netazoic.ent.ENTException;
 import com.netazoic.ent.ifServENT;
 import com.netazoic.ent.rdENT;
 
-
 public  class RemoteDataObj implements ifRemoteDataObj{
 
 	public  rdENT rdEnt;
