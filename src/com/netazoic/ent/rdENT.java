@@ -32,10 +32,11 @@ public abstract class rdENT<T> extends ENT<T> implements ifDataSrcWrapper {
 	}
 	
 	public enum SRC_ORG implements if_SRC_ORG{
-		JH("Johns Hopkins"),
+		JH_G("Johns Hopkins Global Time Series"),
+		JH_US("Johns Hopkins US Time Series"),
 		CTP("Covid Tracking Project");
 
-		String code;
+		public String code;
 		String srcName;
 
 		SRC_ORG(String n){

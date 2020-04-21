@@ -12,7 +12,7 @@ import com.netazoic.ent.ifServENT;
 
 public interface ifRemoteDataObj extends Closeable {
 
-    void expireAllRemoteDataRecords(HashMap<String, Object> recMap) throws SQLException, Exception;
+    int expireAllRemoteDataRecords(HashMap<String, Object> recMap) throws SQLException, Exception;
 
 
     boolean checkRemoteDataRecord(HashMap<String, Object> recMap)throws Exception;

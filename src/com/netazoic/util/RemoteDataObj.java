@@ -135,12 +135,11 @@ public  class RemoteDataObj implements ifRemoteDataObj{
 		this.psDeleteRemoteData = psMap.get(RDQ_API_Param.psDeleteRemoteData.name());
 	}
 
-	public Integer createCombinedData(boolean flgExpireExisting) {
+	public Integer createCombinedData() {
 		int ctCreated = 0;
 		try {
 			con.setAutoCommit(false);
 			rdEnt.con = con;
-			if(flgExpireExisting) rdEnt.expireCombinedRecs();
 			ctCreated = rdEnt.createCombinedRecs();
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -188,14 +187,16 @@ public  class RemoteDataObj implements ifRemoteDataObj{
 	}
 
 	@Override
-	public void expireAllRemoteDataRecords(HashMap<String, Object> recMap) throws SQLException, ENTException {
+	public int expireAllRemoteDataRecords(HashMap<String, Object> recMap) throws SQLException, ENTException {
 		// Clear all existing RemoteData records for queryCode.
 		// deleteRemoteData.setString(1, queryCode);
 		if(rdEnt==null) rdEnt = getEnt(recMap);
 		if(psDeleteRemoteData != null) {
 			rdEnt.setExpireAllStatement(psDeleteRemoteData);
 			psDeleteRemoteData.execute();
+			return psDeleteRemoteData.getUpdateCount();
 		}
+		return 0;
 	}
 
 	public boolean checkRemoteDataRecord(HashMap<String, Object> recMap) throws ENTException {
