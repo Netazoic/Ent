@@ -183,12 +183,12 @@ public class ParseUtil {
 		return parseFileMulti(path,settings);
 	}
 	
-	public String parseQueryFile(String path, Map<String,Object> settings) throws Exception{
-		File rootPath = new File(".");
-		path = getFilePath(path);
-		String q = readFile(path);
-		return parseQuery(settings, q);
-	}
+//	public String parseQueryFile(String path, Map<String,Object> settings) throws Exception{
+//		File rootPath = new File(".");
+//		path = getFilePath(path);
+//		String q = readFile(path);
+//		return parseQuery(settings, q);
+//	}
 
 	public static String parseQuery( String path,Map<String,Object> settings) throws Exception{
 		return parseFileMulti(path,settings);

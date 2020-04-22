@@ -105,7 +105,7 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			String ctp = nit.sql_CreateENT;
 			assert(ctp!=null);
 			HashMap<String, Object> map = getFieldMap();
-			q = parseUtil.parseQueryFile(ctp, map);
+			q = parseUtil.parseQuery(ctp, map);
 			String errMsg = "Create Record function Assumes that recordID will be returned by the sql CREATE script." +  
 			"So the sql needs to end with a ''RETURNING <id_field>'' statement";
 			String ret = SQLUtil.execSQL(q, nit.nitIDField.getName(), con);

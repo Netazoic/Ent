@@ -92,7 +92,7 @@ public  class RemoteDataObj implements ifRemoteDataObj{
 				try {		
 					npsCreateRecord = rdEnt.setupInsertStatement(con);
 				}catch(Exception ex) {
-
+					throw new Exception("Could not setup insert statement");
 				}
 			}
 

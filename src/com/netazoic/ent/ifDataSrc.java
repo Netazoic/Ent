@@ -8,5 +8,7 @@ public interface ifDataSrc {
 
 	public DataFmt getFormat();
 	
+	public String getSrcCode();
+	
 
 }

@@ -296,7 +296,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 	
 	public String parseQuery(String tPath) throws Exception {
 		Map<String,Object> map = new HashMap();
-		return parser.parseQueryFile(tPath, map);
+		return parser.parseQuery(tPath, map);
 	}
 
 	@Override
