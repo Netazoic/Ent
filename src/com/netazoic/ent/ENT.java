@@ -578,5 +578,9 @@ public abstract class ENT<T> implements IF_Ent<T>{
 			paramMap.put(f.getName(), f.get(this));
 		}
 	}
+	public int expireRemoteDataRecords(HashMap<String, Object> recMap) throws SQLException, ENTException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 
 }

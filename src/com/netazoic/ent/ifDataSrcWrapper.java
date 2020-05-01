@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.time.LocalDate;
 import java.util.HashMap;
 
 import org.apache.logging.log4j.Logger;
@@ -63,4 +64,7 @@ public interface ifDataSrcWrapper {
 
 	void importRecords(ifRemoteDataObj rmdObj, RemoteDataRecordCtr ctrObj, Logger logger, Savepoint savePt, Connection con,
 			InputStream is) throws IOException, Exception, SQLException;
+
+	void importRecords(ifRemoteDataObj rmdObj, LocalDate maxDate, RemoteDataRecordCtr ctrObj, Logger logger,
+			Savepoint savePt, Connection con, InputStream is) throws IOException, Exception, SQLException;
 }
