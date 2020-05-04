@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -135,12 +136,12 @@ public  class RemoteDataObj implements ifRemoteDataObj{
 		this.psDeleteRemoteData = psMap.get(RDQ_API_Param.psDeleteRemoteData.name());
 	}
 
-	public Integer createCombinedData() {
+	public Integer createCombinedData(LocalDate lastUpdate) {
 		int ctCreated = 0;
 		try {
 			con.setAutoCommit(false);
 			rdEnt.con = con;
-			ctCreated = rdEnt.createCombinedRecs();
+			ctCreated = rdEnt.createCombinedRecs(lastUpdate);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
