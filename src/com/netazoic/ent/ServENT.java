@@ -53,7 +53,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 	public void init(ServletConfig config) throws javax.servlet.ServletException {
 		super.init( config);
 		ServletContext context;
-		Map<Object, String> settings;
+		Map<String, Object> settings;
 
 		// We need to create the ConnectionPool, ServerSettings, Codes,
 		// Authenticator, and anything else we need here.
@@ -65,12 +65,12 @@ public class ServENT extends HttpServlet implements ifServENT {
 			settings = getSettings();
 			if (settings == null) {
 				context.log("Creating Settings.");
-				settings = new HashMap<Object, String>();
+				settings = new HashMap<String,Object>();
 				Enumeration<String> params = context.getInitParameterNames();
 				Object temp;
 				while (params.hasMoreElements()) {
 					temp = params.nextElement();
-					settings.put(temp, context.getInitParameter(temp.toString()));
+					settings.put((String) temp, context.getInitParameter(temp.toString()));
 				}
 				putSettings(settings);
 			}
@@ -287,10 +287,10 @@ public class ServENT extends HttpServlet implements ifServENT {
 		return m;
 	}
 
-	public Map<Object, String> getSettings() {
-		return (Map<Object, String>)getServletContext().getAttribute(ENT_Param.Settings.name());
+	public Map<String, Object> getSettings() {
+		return (Map<String, Object>)getServletContext().getAttribute(ENT_Param.Settings.name());
 	}
-	public String getSetting(String key){
+	public Object getSetting(String key){
 		return getSettings().get(key);
 	}
 	
@@ -311,7 +311,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 		
 	}
 
-	public void putSettings(Map<Object,String>settings){
+	public void putSettings(Map<String, Object> settings){
 		getServletContext().setAttribute(ENT_Param.Settings.name(), settings);
 	}
 	
