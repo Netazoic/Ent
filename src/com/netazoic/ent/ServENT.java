@@ -11,7 +11,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.servlet.ServletConfig;
@@ -23,11 +22,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netazoic.util.ParseUtil;
-import com.netazoic.util.ParseUtil2;
 
 /*
  * References:
@@ -45,6 +46,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 	public boolean flgDebug = false;
 
 	public ParseUtil parser = new ParseUtil();
+	private static final Logger logger = LogManager.getLogger(ServENT.class);
 
 	public enum ENT_Param{
 		netRoute, routeString, Settings, jndiDB, sqliteDB, dbUser, dbPwd, TemplatePath, request, response, context;}
@@ -336,6 +338,8 @@ public class ServENT extends HttpServlet implements ifServENT {
 
 	public void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException{
+		logger.debug("Starting up service for " + this.getClass());
+
 		request.setCharacterEncoding("utf-8");
 		Enumeration<String> params = request.getParameterNames();
 		doParamParsing(request, params);
@@ -364,7 +368,6 @@ public class ServENT extends HttpServlet implements ifServENT {
 	public abstract class RouteEO implements RouteAction {
 		protected HashMap<String,Object> requestMap;
 		public void init() {
-			//nada
 		}
 		public void doRoute(HttpServletRequest request,
 				HttpServletResponse response, HttpSession session)
@@ -380,6 +383,7 @@ public class ServENT extends HttpServlet implements ifServENT {
 				sqlException.printStackTrace();
 			}
 			catch (Exception ex) {
+				logger.debug(ex.getMessage());
 				ex.printStackTrace();
 			}
 			finally {
