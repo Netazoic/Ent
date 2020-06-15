@@ -11,6 +11,8 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.pegdown.PegDownProcessor;
 
 import com.github.jknack.handlebars.Handlebars;
@@ -18,12 +20,14 @@ import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
+import com.netazoic.covid.TrendGetter;
 
 public class ParseUtil {
 	public ParseUtil(){}
 	public static String templatePath;
 	public static String appRootPath;
 	Handlebars handlebars;
+	private static final Logger logger = LogManager.getLogger(ParseUtil.class);
 	
 	public enum EXTENSION{
 		HBS(".hbs"),
@@ -153,7 +157,7 @@ public class ParseUtil {
 						//If we get this far we have found our template
 						break;
 					}catch(IOException ex) {
-						// Not found
+						logger.error(ex.getMessage());
 					}
 				}
 				if(template!=null) {
