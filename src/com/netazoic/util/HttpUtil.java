@@ -1,5 +1,6 @@
 package com.netazoic.util;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -19,6 +20,17 @@ import javax.net.ssl.X509TrustManager;
 
 public class HttpUtil {
 
+	public static URL getURL(String remoteURL) throws MalformedURLException {
+		remoteURL = remoteURL.trim();
+		remoteURL = remoteURL.replaceAll("\\n", "");
+		remoteURL = remoteURL.replaceAll("\\r", "");
+		return new URL(remoteURL);
+	}
+	
+	public static BufferedInputStream getURLInputStream( String fqdn) throws MalformedURLException, IOException {
+		return new BufferedInputStream(new URL(fqdn).openStream());
+	}
+	
 	public static HttpURLConnection getRemoteHTTPConn(String remoteURL,   Boolean flgDebug)
 			throws Exception, MalformedURLException, IOException,
 			ProtocolException {

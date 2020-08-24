@@ -20,7 +20,7 @@ import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
-import com.netazoic.covid.TrendGetter;
+import com.netazoic.covid.task.TrendGetter;
 
 public class ParseUtil {
 	public ParseUtil(){}
@@ -87,7 +87,12 @@ public class ParseUtil {
 			}
 			if(!flgFoundIt){ //Try without the appRootPath -- fully specified paths in the init config
 				for(String tp : tPaths){
-					tempPath =  tp +  File.separator + path;
+					if(!tp.endsWith("/")) tp += "/";
+					if(path.startsWith("/"))path = path.substring(1);
+					tempPath =  tp +   path;
+					tempPath = tempPath.replaceAll("\\\\", "/");
+					tempPath = tempPath.replaceAll("/\\./", "/");
+						
 					f = new File(tempPath);
 					if(f.exists()){
 						flgFoundIt=true;
@@ -147,11 +152,12 @@ public class ParseUtil {
 				loader.setSuffix(extS);
 				// Strip the extension @#$#@#
 				tPath = tPath.substring(0,tPath.lastIndexOf("."));
-				appRootPath = appRootPath.replaceAll("\\\\","/");
+				if(appRootPath!=null) appRootPath = appRootPath.replaceAll("\\\\","/");
 				String[] tPaths = templatePath.split(";");
 				for(String tp : tPaths){
 					try {
-						loader.setPrefix(appRootPath + tp);
+						if(appRootPath != null) tp = appRootPath + tp;
+						loader.setPrefix( tp);
 						handlebars = new Handlebars(loader);
 						template = handlebars.compile(tPath);
 						//If we get this far we have found our template

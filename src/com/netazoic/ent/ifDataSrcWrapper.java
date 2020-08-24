@@ -1,5 +1,6 @@
 package com.netazoic.ent;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -63,8 +64,8 @@ public interface ifDataSrcWrapper {
 	DataFmt getFormat();
 
 	void importRecords(ifRemoteDataObj rmdObj, RemoteDataRecordCtr ctrObj, Logger logger, Savepoint savePt, Connection con,
-			InputStream is) throws IOException, Exception, SQLException;
+			BufferedInputStream is) throws IOException, Exception, SQLException;
 
 	void importRecords(ifRemoteDataObj rmdObj, LocalDate maxDate, RemoteDataRecordCtr ctrObj, Logger logger,
-			Savepoint savePt, Connection con, InputStream is) throws IOException, Exception, SQLException;
+			Savepoint savePt, Connection con, BufferedInputStream is) throws IOException, Exception, SQLException;
 }

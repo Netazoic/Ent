@@ -10,6 +10,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -22,9 +24,6 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
-
-
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -34,106 +33,110 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netazoic.util.ParseUtil;
 import com.netazoic.util.SQLUtil;
 
-
-
-public abstract class ENT<T> implements IF_Ent<T>{
+public abstract class ENT<T> implements IF_Ent<T> {
 
 	@JsonIgnore
 	public NIT nit = new NIT();
 
-
-
-
 	@JsonIgnore
 	public ParseUtil parseUtil = new ParseUtil();
 
-	@JsonIgnore 
+	@JsonIgnore
 	public Connection con;
 
-	public void init() throws ENTException{
+	public void init() throws ENTException {
 		initENT();
 	}
-	public void init(Connection con) throws ENTException{
+
+	public void init(Connection con) throws ENTException {
 		this.con = con;
 		init();
 	}
 
-	public void init(String id, Connection con) throws ENTException{
-		this.con = con;
-		init();
-		setIDFieldVal(id);
-		retrieveRecord();
-	}
-
-	public void init(Long id,Connection con) throws ENTException{
+	public void init(String id, Connection con) throws ENTException {
 		this.con = con;
 		init();
 		setIDFieldVal(id);
 		retrieveRecord();
 	}
 
+	public void init(Long id, Connection con) throws ENTException {
+		this.con = con;
+		init();
+		setIDFieldVal(id);
+		retrieveRecord();
+	}
 
-	public void initENT() throws ENTException{
+	public void initENT() throws ENTException {
 		nit.initNIT(this.getClass());
 	}
 
-	public ENT(){}
-	public ENT(Connection con) throws ENTException{
+	public ENT() {
+	}
+
+	public ENT(Connection con) throws ENTException {
 		init(con);
 	}
-	public ENT(Long id,Connection con) throws ENTException{
-		init(id,con);
+
+	public ENT(Long id, Connection con) throws ENTException {
+		init(id, con);
 	}
 
-
-
-	public ENT<?> clone(){
+	public ENT<?> clone() {
 		return this.clone();
 	}
-	/* (non-Javadoc)
-	 * @see com.netazoic.ent.IF_Ent#copyRecord(com.netazoic.ent.IF_Ent, java.lang.String)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.netazoic.ent.IF_Ent#copyRecord(com.netazoic.ent.IF_Ent,
+	 * java.lang.String)
 	 */
-	public void copyRecord(IF_Ent<T> entS,String webuserID)
-			throws ENTException{
-		//overwrite with actual class if desired
+	public void copyRecord(IF_Ent<T> entS, String webuserID) throws ENTException {
+		// overwrite with actual class if desired
 	}
 
-	
 	public Long createRecord() throws ENTException {
 		String q = null;
-		try{
+		try {
 			String ctp = nit.sql_CreateENT;
-			assert(ctp!=null);
+			assert (ctp != null);
 			HashMap<String, Object> map = getFieldMap();
 			q = parseUtil.parseQuery(ctp, map);
-			String errMsg = "Create Record function Assumes that recordID will be returned by the sql CREATE script." +  
-			"So the sql needs to end with a ''RETURNING <id_field>'' statement";
+			String errMsg = "Create Record function Assumes that recordID will be returned by the sql CREATE script."
+					+ "So the sql needs to end with a ''RETURNING <id_field>'' statement";
 			String ret = SQLUtil.execSQL(q, nit.nitIDField.getName(), con);
-			if(ret==null) throw new ENTException(errMsg);
+			if (ret == null)
+				throw new ENTException(errMsg);
 			Long id = Long.parseLong(ret);
 			nit.nitIDField.set(this, id);
 			return id;
-		}catch(Exception ex){
+		} catch (Exception ex) {
 			throw new ENTException(ex);
-		}finally{
+		} finally {
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.netazoic.ent.IF_Ent#createRecord(javax.servlet.http.HttpServletRequest, java.sql.Connection)
-	 */
-	public abstract Long createRecord(HashMap<String,Object> paramMap,	Connection con) throws ENTException;
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.netazoic.ent.IF_Ent#createRecord(javax.servlet.http.HttpServletRequest,
+	 * java.sql.Connection)
+	 */
+	public abstract Long createRecord(HashMap<String, Object> paramMap, Connection con) throws ENTException;
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.netazoic.ent.IF_Ent#deleteRecord(java.lang.String, java.lang.String)
 	 */
-	public abstract void deleteRecord(String webuserID, String comments)
-			throws ENTException;
+	public abstract void deleteRecord(String webuserID, String comments) throws ENTException;
 
 	@JsonIgnore
 	public static List<Field> getAllFields(List<Field> fields, Class<?> type) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
-		for (Field field: type.getDeclaredFields()) {
+		for (Field field : type.getDeclaredFields()) {
 			fields.add(field);
 		}
 
@@ -145,75 +148,74 @@ public abstract class ENT<T> implements IF_Ent<T>{
 	}
 
 	@JsonIgnore
-	public static List<Field> getAllFields(List<Field> fields, Class<?> type,boolean flgInherit) {
+	public static List<Field> getAllFields(List<Field> fields, Class<?> type, boolean flgInherit) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
-		for (Field field: type.getDeclaredFields()) {
+		for (Field field : type.getDeclaredFields()) {
 			fields.add(field);
 		}
-		if(flgInherit){
+		if (flgInherit) {
 			if (type.getSuperclass() != null) {
 				fields = getAllFields(fields, type.getSuperclass());
-			}		
+			}
 		}
 
 		return fields;
 	}
-	
+
 	@JsonIgnore
-	public List<Field> getFields(){
-		return getFields(new LinkedList<Field>(),this.getClass(),false,true);
-	
+	public List<Field> getFields() {
+		return getFields(new LinkedList<Field>(), this.getClass(), false, true);
+
 	}
+
 	@JsonIgnore
 	public static List<Field> getFields(List<Field> fields, Class<?> type, boolean flgInherit, boolean flgPublic) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
 
-		if(flgPublic)
-			for (Field field: type.getFields()) {
+		if (flgPublic)
+			for (Field field : type.getFields()) {
 				fields.add(field);
 			}
 
 		else
-			for (Field field: type.getDeclaredFields()) {
+			for (Field field : type.getDeclaredFields()) {
 				fields.add(field);
 			}
 
-		if(flgInherit){
+		if (flgInherit) {
 			if (type.getSuperclass() != null) {
 				fields = getAllFields(fields, type.getSuperclass());
-			}		
+			}
 		}
 
 		return fields;
 	}
-	
+
 	@JsonIgnore
 	public static List<Field> getLocalFields(List<Field> fields, Class<?> type, boolean flgPublic) {
 		// http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
 
-		if(flgPublic)
-			for (Field field: type.getDeclaredFields()) {
-				//local public fields only
-				if(Modifier.isPublic(field.getModifiers())) {
+		if (flgPublic)
+			for (Field field : type.getDeclaredFields()) {
+				// local public fields only
+				if (Modifier.isPublic(field.getModifiers())) {
 					fields.add(field);
 				}
 			}
 
 		else
-			for (Field field: type.getDeclaredFields()) {
+			for (Field field : type.getDeclaredFields()) {
 				fields.add(field);
 			}
-
 
 		return fields;
 	}
 
-	
 	@JsonIgnore
-	public HashMap<String,Object> getFieldMap(){
-		 HashMap<String,Object> fldMap = new HashMap<String,Object>();
+	public HashMap<String, Object> getFieldMap() {
+		HashMap<String, Object> fldMap = new HashMap<String, Object>();
 
-		for(Field f : this.getClass().getDeclaredFields()){
+		for (Field f : this.getClass().getDeclaredFields()) {
 			try {
 				fldMap.put(f.getName(), f.get(this));
 			} catch (IllegalArgumentException | IllegalAccessException e) {
@@ -221,200 +223,231 @@ public abstract class ENT<T> implements IF_Ent<T>{
 				e.printStackTrace();
 			}
 		}
-		return fldMap;		
+		return fldMap;
 	}
-	
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.netazoic.ent.IF_Ent#getJSON()
 	 */
 	@JsonIgnore
-	public String getJSON() throws  ENTException{
+	public String getJSON() throws ENTException {
 		String json = null;
-		//Jackson
+		// Jackson
 		ObjectMapper jackson = new ObjectMapper();
 		jackson.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false);
 		try {
-			//json = jackson.writerWithView(JView.R_Std.class).writeValueAsString(obj);
+			// json = jackson.writerWithView(JView.R_Std.class).writeValueAsString(obj);
 			json = jackson.writer().writeValueAsString(this);
-			//json = jackson.writeValueAsString(this);
+			// json = jackson.writeValueAsString(this);
 		} catch (JsonGenerationException e) {
 			throw new ENTException(e);
 		} catch (JsonMappingException e) {
 			throw new ENTException(e);
 		} catch (IOException e) {
 			throw new ENTException(e);
-		} catch (Exception ex){
+		} catch (Exception ex) {
 			throw new ENTException(ex);
 		}
 		return json;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.netazoic.ent.IF_Ent#retrieveRecord()
 	 */
 	public void retrieveRecord() throws ENTException {
 		Statement stat = null;
 		String sql = null;
-		try{
+		try {
 			Object nitIDObj;
-			assert(nit.nitIDField!=null);
+			assert (nit.nitIDField != null);
 			nitIDObj = nit.nitIDField.get(this);
-			if(nitIDObj == null) throw new Exception("Must first set record ID value.");
+			if (nitIDObj == null)
+				throw new Exception("Must first set record ID value.");
 			String fPath = nit.sql_RetrieveENT;
 			Map<String, Object> settings = new HashMap<String, Object>();
 			settings.put(nit.nitIDField.getName(), nitIDObj);
-			if(fPath == null){
+			if (fPath == null) {
 				sql = "SELECT * FROM " + nit.nitTable + " WHERE " + nit.nitIDField.getName() + " = '" + nitIDObj + "'";
-			}
-			else sql = ParseUtil.parseQuery(fPath, settings);
+			} else
+				sql = ParseUtil.parseQuery(fPath, settings);
 			stat = con.createStatement();
-			ResultSet rs = SQLUtil.execSQL(sql,stat);
+			ResultSet rs = SQLUtil.execSQL(sql, stat);
 			setFieldVals(rs);
-			//twiddleWebuserIterator();
-		}catch(Exception ex){
+			// twiddleWebuserIterator();
+		} catch (Exception ex) {
 			throw new ENTException(ex);
-		}finally{
-			if(stat != null) try{stat.close();stat = null;}catch(Exception ex){}
-		}	
+		} finally {
+			if (stat != null)
+				try {
+					stat.close();
+					stat = null;
+				} catch (Exception ex) {
+				}
+		}
 
 	}
 
-	public void retrieveRecord(HashMap<String,Object> settings) throws ENTException {
+	public void retrieveRecord(HashMap<String, Object> settings) throws ENTException {
 		Statement stat = null;
-		try{
+		try {
 			String ctp = nit.sql_RetrieveENT;
 			String sql = ParseUtil.parseQuery(settings, ctp);
 			stat = con.createStatement();
-			ResultSet rs = SQLUtil.execSQL(sql,stat);
+			ResultSet rs = SQLUtil.execSQL(sql, stat);
 			setFieldVals(rs);
-		}catch(Exception ex){
+		} catch (Exception ex) {
 			throw new ENTException(ex);
-		}finally{
-			if(stat != null) try{stat.close();stat = null;}catch(Exception ex){}
-		}	
+		} finally {
+			if (stat != null)
+				try {
+					stat.close();
+					stat = null;
+				} catch (Exception ex) {
+				}
+		}
 
 	}
 
-
-	private Object setFieldVal(Field f, Object val)
-			throws IllegalAccessException, ENTException {
+	private Object setFieldVal(Field f, Object val) throws IllegalAccessException, ENTException {
 		Class<?> type = f.getType();
-		try{
+		try {
 			val = type.getClass().cast(val);
-		}catch(Exception ex){
-			//casting didn't work
+		} catch (Exception ex) {
+			// casting didn't work
 		}
-		if( type.isInstance(val)){
-			//nada, type is the same between rs and object. No conversion necessary.
-		}
-		else if((type.equals(Integer.class) || (type.equals(int.class))) && ( val instanceof java.math.BigDecimal)){
-			BigDecimal mybd = (BigDecimal)val;
-			val = mybd.intValueExact();					
-		}
-		else if((type.equals(Integer.class) || (type.equals(int.class))) && ( val instanceof java.lang.String)){
-			Integer intVal = Integer.valueOf((String)val);
-			val = intVal;					
-		}
-		else if(type.equals(String.class) && val instanceof java.math.BigDecimal){
-			//need to convert to a String
+		if (type.isInstance(val)) {
+			// nada, type is the same between rs and object. No conversion necessary.
+		} else if ((type.equals(Integer.class) || (type.equals(int.class))) && (val instanceof java.math.BigDecimal)) {
+			BigDecimal mybd = (BigDecimal) val;
+			val = mybd.intValueExact();
+		} else if ((type.equals(Integer.class) || (type.equals(int.class))) && (val instanceof java.lang.String)) {
+			Integer intVal = Integer.valueOf((String) val);
+			val = intVal;
+		} else if (type.equals(String.class) && val instanceof java.math.BigDecimal) {
+			// need to convert to a String
 			val = val.toString();
-		}
-		else if(type.equals(java.sql.Date.class) && val instanceof java.sql.Timestamp){
-			Timestamp ts = (Timestamp)val;
+		} else if (type.equals(java.sql.Date.class) && val instanceof java.sql.Timestamp) {
+			Timestamp ts = (Timestamp) val;
 			val = new java.sql.Date(ts.getTime());
-		}
-		else if(type.equals(java.util.Date.class) && val instanceof java.sql.Timestamp){
-			Timestamp ts = (Timestamp)val;
+		} else if (type.equals(java.util.Date.class) && val instanceof java.sql.Timestamp) {
+			Timestamp ts = (Timestamp) val;
 			val = new java.util.Date(ts.getTime());
-		}
-		else if (type.equals(String.class) && val instanceof java.sql.Date){
-			//need to convert Date to a String
+		} else if (type.equals(String.class) && val instanceof java.sql.Date) {
+			// need to convert Date to a String
 			val = val.toString();
-		}
-		else if(type.equals(Long.class) && val instanceof java.lang.Integer){
-			val = Long.valueOf((Integer)val);
-		}
-		else if (type.equals(Double.class)&& val instanceof java.lang.String){
-			try {
-			Double db = Double.valueOf((String) val);
-			val = db;
-			}catch(Exception ex) {
-				String strVal = (String) val;
-				if(strVal.equals("")) val = 0.0D;
-				else throw new ENTException("Could not convert String to Double: " + val.toString());
+		} else if (type.equals(LocalDate.class)&& val instanceof Integer) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+			val = LocalDate.parse(val+"",formatter);
+			
+		} else if (type.equals(LocalDate.class) && val instanceof java.lang.String) {
+			String dateStr = (String) val;
+			DateTimeFormatter formatter;
+			String dateFormat;
+			int ct = dateStr.length();
+			if (ct == 8) { // MM/DD/YY
+				if (dateStr.contains("-")) dateFormat = "MM-dd-yy";
+				else dateFormat = "MM/dd/yy";
 			}
-		}
-		else if (type.equals(Long.class)&& val instanceof java.math.BigDecimal){
+			else if (ct == 10) {
+				if (dateStr.contains("-")) // yyyy-MM-dd
+					dateFormat = "yyyy-MM-dd"; // default pattern
+				else dateFormat = "MM/dd/yyyy";
+			} else {
+				dateFormat = "yyyy-MM-dd";
+			}
+			formatter = DateTimeFormatter.ofPattern(dateFormat);
+			val = LocalDate.parse((CharSequence) val, formatter);
+		} else if (type.equals(Long.class) && val instanceof java.lang.Integer) {
+			val = Long.valueOf((Integer) val);
+		} else if (type.equals(Double.class) && val instanceof java.lang.String) {
+			try {
+				Double db = Double.valueOf((String) val);
+				val = db;
+			} catch (Exception ex) {
+				String strVal = (String) val;
+				if (strVal.equals(""))
+					val = 0.0D;
+				else
+					throw new ENTException("Could not convert String to Double: " + val.toString());
+			}
+		} else if (type.equals(Long.class) && val instanceof java.math.BigDecimal) {
 			BigDecimal bd = (BigDecimal) val;
-			if (bd.scale()<=0) val = bd.longValue();
-			else throw new ENTException("Could not convert BigDecimal to Long: " + val.toString());
-		}
-		else if(type.equals(Long.class) && val instanceof java.lang.String){
-			try{
-				val = Long.valueOf((String)val);
-			}catch(Exception ex){
+			if (bd.scale() <= 0)
+				val = bd.longValue();
+			else
+				throw new ENTException("Could not convert BigDecimal to Long: " + val.toString());
+		} else if (type.equals(Long.class) && val instanceof java.lang.String) {
+			try {
+				val = Long.valueOf((String) val);
+			} catch (Exception ex) {
 				throw new ENTException("val cannot be converted to a Long: " + val);
 			}
-		}
-		else if(type.equals(java.util.UUID.class) && val instanceof java.lang.String){
-			try{
-				val  = UUID.fromString((String)val);
-			}catch(Exception ex){
+		} else if (type.equals(java.util.UUID.class) && val instanceof java.lang.String) {
+			try {
+				val = UUID.fromString((String) val);
+			} catch (Exception ex) {
 				val = UUID.randomUUID();
 			}
 		}
-		try{
+		try {
 			f.set(this, val);
-		}catch(Exception ex){
+		} catch (Exception ex) {
 			throw new ENTException(ex);
 		}
 		return val;
 	}
+
 	private void setIDFieldVal(Long id) throws ENTException {
-		try{
+		try {
 			nit.nitIDField.set(this, id);
-		}catch(IllegalAccessException ex){
+		} catch (IllegalAccessException ex) {
 			throw new ENTException(ex);
 		}
 	}
-	public void setFieldVals(Map<String,Object> paramMap) throws SQLException, ENTException{
-		//load object fields from similarly named db fields
-		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
-		//Field[] flds = this.getClass().getDeclaredFields();
+
+	public void setFieldVals(Map<String, Object> paramMap) throws SQLException, ENTException {
+		// load object fields from similarly named db fields
+		List<Field> flds = getAllFields(new LinkedList<Field>(), this.getClass());
+		// Field[] flds = this.getClass().getDeclaredFields();
 		Object val;
 		String fld = null;
 		Set<String> keys = paramMap.keySet();
-		Map<String,Object> lowerKeys = new HashMap<String,Object>();
-		for(String k : keys){
+		Map<String, Object> lowerKeys = new HashMap<String, Object>();
+		for (String k : keys) {
 			lowerKeys.put(k.toLowerCase(), paramMap.get(k));
 		}
 
-		for(Field f : flds){
-			try{
+		for (Field f : flds) {
+			try {
 				fld = f.getName().toLowerCase();
-				if(!lowerKeys.containsKey(fld))continue;
+				if (!lowerKeys.containsKey(fld))
+					continue;
 				val = lowerKeys.get(fld);
-				//if(val==null) continue;
+				// if(val==null) continue;
 				val = setFieldVal(f, val);
-			}catch(Exception ex){
+			} catch (Exception ex) {
 				@SuppressWarnings("unused")
 				String msg = "";
-				if(fld!=null) msg += fld.toString() + "\n";
+				if (fld != null)
+					msg += fld.toString() + "\n";
 				msg += ex.getMessage();
 				throw new ENTException(msg);
-				//continue;
+				// continue;
 			}
 		}
 	}
 
-	public void	setFieldVals(HttpServletRequest request)
-			throws ENTException {
-	
-		//Set object values based on form input
+	public void setFieldVals(HttpServletRequest request) throws ENTException {
+
+		// Set object values based on form input
 		Enumeration params = request.getAttributeNames();
-		List<Field> flds= getFields();
-		Map<String,Field> fldMap = new HashMap();
-		for(Field f : flds){
+		List<Field> flds = getFields();
+		Map<String, Field> fldMap = new HashMap();
+		for (Field f : flds) {
 			fldMap.put(f.getName(), f);
 		}
 		String fldName;
@@ -423,104 +456,117 @@ public abstract class ENT<T> implements IF_Ent<T>{
 		Class fType;
 		Date d = new Date();
 		String q = "";
-	
-		//q = "UPDATE donation SET \n";
-		while(params.hasMoreElements()){
-			fldName = (String)params.nextElement();
-			if(!fldMap.containsKey(fldName))continue;
-			fldVal = (String)request.getAttribute(fldName);
+
+		// q = "UPDATE donation SET \n";
+		while (params.hasMoreElements()) {
+			fldName = (String) params.nextElement();
+			if (!fldMap.containsKey(fldName))
+				continue;
+			fldVal = (String) request.getAttribute(fldName);
 			f = fldMap.get(fldName);
-			if(fldVal!=null && fldVal.equals(""))fldVal = null;
-			if(fldVal == null)	fldVal = null;
-			if(fldVal != null){
-				//whitelist this text
-				//fldVal = JSONUtil.whiteWashString((String)fldVal, null);
+			if (fldVal != null && fldVal.equals(""))
+				fldVal = null;
+			if (fldVal == null)
+				fldVal = null;
+			if (fldVal != null) {
+				// whitelist this text
+				// fldVal = JSONUtil.whiteWashString((String)fldVal, null);
 			}
-			try{
-				setFieldVal(f,fldVal);
-			}catch(Exception ex){
+			try {
+				setFieldVal(f, fldVal);
+			} catch (Exception ex) {
 				throw new ENTException(ex);
 			}
 		}
 	}
+
 	private void setIDFieldVal(String id) throws ENTException {
-		try{
+		try {
 			nit.nitIDField.set(this, Long.parseLong(id));
-		}catch(IllegalAccessException ex){
+		} catch (IllegalAccessException ex) {
 			throw new ENTException(ex);
 		}
 	}
-	/* (non-Javadoc)
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.netazoic.ent.IF_Ent#setFieldVals(java.sql.ResultSet)
 	 */
-	public void setFieldVals(ResultSet rs) throws SQLException, ENTException{
-		//load object fields from similarly named db fields
+	public void setFieldVals(ResultSet rs) throws SQLException, ENTException {
+		// load object fields from similarly named db fields
 		/*
-		 * At this level, the setFieldVals function can only set values on Public fields in the 
-		 * extending class. If you wish to work with private or package scope fields, override
-		 * this function with a copy in the local class.
+		 * At this level, the setFieldVals function can only set values on Public fields
+		 * in the extending class. If you wish to work with private or package scope
+		 * fields, override this function with a copy in the local class.
 		 */
-		List<Field> flds= getAllFields(new LinkedList<Field>(),this.getClass());
-		//Field[] flds = this.getClass().getDeclaredFields();
+		List<Field> flds = getAllFields(new LinkedList<Field>(), this.getClass());
+		// Field[] flds = this.getClass().getDeclaredFields();
 		Object val;
 		String fld;
 
 		rs.next();
 		ResultSetMetaData rsmd = rs.getMetaData();
-		Map<String,Integer> colMap = new HashMap<String,Integer>();
-		for (int i = 1; i < rsmd.getColumnCount()+1; i++){
+		Map<String, Integer> colMap = new HashMap<String, Integer>();
+		for (int i = 1; i < rsmd.getColumnCount() + 1; i++) {
 			colMap.put(rsmd.getColumnName(i).toLowerCase(), i);
 		}
-		for(Field f : flds){
-			try{
+		for (Field f : flds) {
+			try {
 				fld = f.getName();
-				if(!colMap.containsKey(fld.toLowerCase()))continue;
+				if (!colMap.containsKey(fld.toLowerCase()))
+					continue;
 				val = rs.getObject(fld);
-				//if(val==null) continue;
+				// if(val==null) continue;
 
 				val = setFieldVal(f, val);
-			}catch(Exception ex){
+			} catch (Exception ex) {
 				@SuppressWarnings("unused")
 				String msg = ex.getMessage();
 				throw new ENTException(msg);
 			}
 		}
 	}
-	
-	public void updateRecord() throws ENTException{
-		HashMap<String,Object> map = this.getFieldMap();
+
+	public void updateRecord() throws ENTException {
+		HashMap<String, Object> map = this.getFieldMap();
 		updateRecord(map);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.netazoic.ent.IF_Ent#updateRecord(javax.servlet.http.HttpServletRequest)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.netazoic.ent.IF_Ent#updateRecord(javax.servlet.http.HttpServletRequest)
 	 */
 	@Override
-	public void updateRecord(HashMap<String,Object> paramMap) throws ENTException{
+	public void updateRecord(HashMap<String, Object> paramMap) throws ENTException {
 		boolean flgInherit = true;
 		boolean flgPublic = true;
 		try {
-			updateRecord(paramMap, flgInherit,flgPublic);
+			updateRecord(paramMap, flgInherit, flgPublic);
 		} catch (SQLException ex) {
 			throw new ENTException(ex);
 		}
 	}
 
-	public void updateRecord(Map<String,Object> paramMap, boolean flgInherit, boolean flgPublic) throws ENTException, SQLException{
+	public void updateRecord(Map<String, Object> paramMap, boolean flgInherit, boolean flgPublic)
+			throws ENTException, SQLException {
 
-		//Update a record based on form input
-		//Only update the fields that are actually present in the form input
-		//Works with multi-page forms
-		try{
-			assert(nit.nitTable != null && nit.nitIDField != null);
-		}catch(Exception ex){
+		// Update a record based on form input
+		// Only update the fields that are actually present in the form input
+		// Works with multi-page forms
+		try {
+			assert (nit.nitTable != null && nit.nitIDField != null);
+		} catch (Exception ex) {
 			throw new ENTException("nit variables not set for this object.  Cannot update record.");
 		}
 
-		Map<String,Field> fldMap = new HashMap<String, Field>();
-		List<Field> flds= getFields(new LinkedList<Field>(),this.getClass(),flgInherit, flgPublic);
-		for(Field f : flds){
-			if(f.getName().equals(nit.nitIDField.getName())) continue;
+		Map<String, Field> fldMap = new HashMap<String, Field>();
+		List<Field> flds = getFields(new LinkedList<Field>(), this.getClass(), flgInherit, flgPublic);
+		for (Field f : flds) {
+			if (f.getName().equals(nit.nitIDField.getName()))
+				continue;
 			fldMap.put(f.getName(), f);
 		}
 
@@ -533,51 +579,55 @@ public abstract class ENT<T> implements IF_Ent<T>{
 
 		String q;
 		q = "UPDATE " + nit.nitTable + " SET \n";
-		for(String key : paramMap.keySet()){
+		for (String key : paramMap.keySet()) {
 			f = fldMap.get(key);
-			if(f==null) continue;
-			//if(!fldMap.containsKey(k)) continue;
+			if (f == null)
+				continue;
+			// if(!fldMap.containsKey(k)) continue;
 			val = paramMap.get(key);
 			fld = f.getName();
 			fType = f.getType();
-			if(val!=null && val.equals(""))val = null;
-			if(val == null){
-				//continue -- don't set nulls
+			if (val != null && val.equals(""))
+				val = null;
+			if (val == null) {
+				// continue -- don't set nulls
 				// q += fld + "= null, \n";
 				continue;
-			}
-			else{
-				if(fType.isInstance(d))
-					q += fld + "= '" + val+"'::TimeStamp, \n";
+			} else {
+				if (fType.isInstance(d))
+					q += fld + "= '" + val + "'::TimeStamp, \n";
 				else if (fType.isInstance(ts))
-					q += fld + "= '" + val+"'::TimeStamp, \n";
-				else{
-					val = SQLUtil.fixString((String)val);
+					q += fld + "= '" + val + "'::TimeStamp, \n";
+				else {
+					val = SQLUtil.fixString((String) val);
 					q += fld + "='" + val + "',\n";
 				}
 			}
 		}
-		if(q.indexOf(",")<0){
-			//the update failed. No field values were found in the incoming request attributes collection
+		if (q.indexOf(",") < 0) {
+			// the update failed. No field values were found in the incoming request
+			// attributes collection
 			return;
 		}
-		q = q.substring(0,q.lastIndexOf(",")) + "\n";
+		q = q.substring(0, q.lastIndexOf(",")) + "\n";
 		try {
-			q += " WHERE " + nit.nitIDField.getName() +"='" + nit.nitIDField.get(this) + "'";
+			q += " WHERE " + nit.nitIDField.getName() + "='" + nit.nitIDField.get(this) + "'";
 		} catch (IllegalArgumentException e) {
 			throw new ENTException(e);
 		} catch (IllegalAccessException e) {
 			throw new ENTException(e);
 		}
-		SQLUtil.execSQL(q,con);
+		SQLUtil.execSQL(q, con);
 
 	}
+
 	protected void loadParamMap(Map<String, Object> paramMap) throws IllegalAccessException {
-		//for (Field f : this.getClass().getDeclaredFields()){
-		for (Field f : this.getClass().getFields()){
+		// for (Field f : this.getClass().getDeclaredFields()){
+		for (Field f : this.getClass().getFields()) {
 			paramMap.put(f.getName(), f.get(this));
 		}
 	}
+
 	public int expireRemoteDataRecords(HashMap<String, Object> recMap) throws SQLException, ENTException {
 		// TODO Auto-generated method stub
 		return 0;
