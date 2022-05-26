@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 import org.apache.logging.log4j.Logger;
 
-import com.netazoic.covid.ent.ifDataType;
+//import com.netazoic.covid.ent.ifDataType;
 import com.netazoic.ent.rdENT.DataFmt;
 import com.netazoic.ent.rdENT.SRC_ORG;
 import com.netazoic.util.NamedParameterStatement;
@@ -45,7 +45,7 @@ public interface ifDataSrcWrapper {
 
 	void init(HashMap<String, Object> recMap) throws ENTException;
 
-	void setType(ifDataType type);
+//	void setType(ifDataType type);
 
 	void setInsertStatement(NamedParameterStatement nps) throws SQLException, ENTException;
 

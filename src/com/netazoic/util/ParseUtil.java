@@ -20,7 +20,7 @@ import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.ClassPathTemplateLoader;
 import com.github.jknack.handlebars.io.FileTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateLoader;
-import com.netazoic.covid.task.TrendGetter;
+//import com.netazoic.covid.task.TrendGetter;
 
 public class ParseUtil {
 	public ParseUtil(){}

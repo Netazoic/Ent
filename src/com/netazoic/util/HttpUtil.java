@@ -10,6 +10,8 @@ import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Enumeration;
+import java.util.HashMap;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -17,6 +19,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.servlet.http.HttpServletRequest;
 
 public class HttpUtil {
 
@@ -165,6 +168,17 @@ public class HttpUtil {
 		} finally {
 
 		}
+	}
+	
+	public static HashMap<String,Object> getRequestMap(HttpServletRequest request){
+		Enumeration<String> attrs = request.getAttributeNames();
+		HashMap<String,Object> map = new HashMap<String,Object>();
+		while(attrs.hasMoreElements()) {
+			String attr = attrs.nextElement();
+			map.put(attr, request.getAttribute(attr));
+		}
+		return map;
+		
 	}
 
 

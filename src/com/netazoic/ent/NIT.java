@@ -124,7 +124,7 @@ public class NIT<T> {
             }catch(Exception ex){
                 // No definition for f.name in ATY_CTP
                 // nada
-                // throw new ClarescoException(ex);
+                // throw new Exception(ex);
                 // DEBUG
                 if(flgDebug) System.out.println(ex.getMessage());
             }
